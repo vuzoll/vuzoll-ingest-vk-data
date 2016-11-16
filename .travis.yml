@@ -1,0 +1,11 @@
+sudo: required
+
+services:
+  - docker
+
+before_script:
+  - docker login -e="$DOCKER_EMAIL" -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD"
+
+script:
+  - docker build -t vuzoll/vuzoll-ingest-vk-data .
+  - docker push vuzoll/vuzoll-ingest-vk-data
