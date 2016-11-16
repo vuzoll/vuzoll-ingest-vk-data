@@ -1,3 +1,25 @@
 = vuzoll-ingest-vk-data
 
 Ingests vk data.
+
+== HOWTO: start with docker
+
+[source,shell]
+----
+mkdir /data
+
+docker ps # to determine if container is already running
+docker kill $CONTAINER_ID # if needed
+
+docker pull vuzoll/vuzoll-ingest-vk-data
+docker run -dit -v /data:/data vuzoll/vuzoll-ingest-vk-data
+----
+
+== HOWTO: check that service is up
+
+[source,shell]
+----
+ls /data
+wc /data/vk.data
+tail /data/vk.data
+----
