@@ -10,9 +10,9 @@ START_NODE = 11582866 # me
 FIELDS_TO_REMOVE = ['uid', 'first_name', 'last_name', 'hidden']
 NECESSARY_FIELDS = ['career', 'universities', 'education', 'occupation',
                     'university_name', 'university', 'faculty_name', 'faculty']
-EXECUTION_STATE_FILE = '/root/data/fetch-vk-data.state'
+EXECUTION_STATE_FILE = '/data/ingest-vk-data.state'
 TIMER_SEC = None
-OUTPUT_FILE = '/root/data/vk.data'
+OUTPUT_FILE = '/data/vk.data'
 
 queue = []
 
@@ -119,6 +119,7 @@ def load_execution_state():
 parser = argparse.ArgumentParser('Fetching university data from vk')
 parser.add_argument('--node', help='start node id')
 parser.add_argument('--file', help='output file')
+parser.add_argument('--state', help='state file')
 parser.add_argument('--time', help='time limit')
 args = vars(parser.parse_args())
 
@@ -126,6 +127,8 @@ if args['node'] is not None:
     START_NODE = int(args['node'])
 if args['file'] is not None:
     OUTPUT_FILE = str(args['file'])
+if args['state'] is not None:
+    EXECUTION_STATE_FILE = str(args['state'])
 if args['time'] is not None:
     TIMER_SEC = int(args['time'])
 
