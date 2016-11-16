@@ -1,0 +1,3 @@
+= vuzoll-ingest-vk-data
+
+Ingests vk data.
