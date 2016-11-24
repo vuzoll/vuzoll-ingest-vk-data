@@ -92,6 +92,7 @@ def crawl_graph(start_node_id, process_data_and_get_ids_fn):
         new_node_ids = process_data_and_get_ids_fn(node_id)
         print >> sys.stderr, 'new ids count:', len(new_node_ids), 'total ids count:', len(processed_friend_ids)
         queue += zip(new_node_ids, [cur_depth + 1 for _ in range(len(new_node_ids))])
+        persist_execution_state()
         if TIMER_SEC is not None and time.time() - start_time > TIMER_SEC:
             break
 
