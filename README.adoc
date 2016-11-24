@@ -20,6 +20,7 @@ docker run -dit -v /data:/data vuzoll/vuzoll-ingest-vk-data:$TAG # to start spec
 [source,shell]
 ----
 ls /data
-wc /data/vk.data
+wc /data/*
 tail /data/vk.data
+tail /data/ingest-vk-data.state
 ----
