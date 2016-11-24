@@ -5,6 +5,9 @@ language: python
 services:
   - docker
 
+script:
+  - ;
+
 after_success:
   - docker login -e="$DOCKER_EMAIL" -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD"
   - export DOCKER_REPO=vuzoll/vuzoll-ingest-vk-data
