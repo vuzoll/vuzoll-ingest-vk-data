@@ -1,6 +1,6 @@
 = vuzoll-ingest-vk-data
 
-Ingests vk data.
+Microservice for ingesting Vk data.
 
 == HOWTO: start with docker
 
@@ -11,8 +11,8 @@ mkdir /data
 docker ps # to determine if container is already running
 docker kill $CONTAINER_ID # if needed
 
-docker pull vuzoll/vuzoll-ingest-vk-data
-docker run -dit -v /data:/data vuzoll/vuzoll-ingest-vk-data
+docker pull vuzoll/vuzoll-ingest-vk-data:$TAG # to load specific image
+docker run -dit -v /data:/data vuzoll/vuzoll-ingest-vk-data:$TAG # to start specific image
 ----
 
 == HOWTO: check that service is up
@@ -20,6 +20,7 @@ docker run -dit -v /data:/data vuzoll/vuzoll-ingest-vk-data
 [source,shell]
 ----
 ls /data
-wc /data/vk.data
+wc /data/*
 tail /data/vk.data
+tail /data/ingest-vk-data.state
 ----
