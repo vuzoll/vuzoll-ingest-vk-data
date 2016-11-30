@@ -6,13 +6,17 @@ import sys
 
 
 REQUEST_FIELDS = ['country', 'city', 'universities', 'education', 'occupation', 'career']
-START_NODE = 11582866 # me
 FIELDS_TO_REMOVE = ['uid', 'first_name', 'last_name', 'hidden']
 NECESSARY_FIELDS = ['career', 'universities', 'education', 'occupation',
                     'university_name', 'university', 'faculty_name', 'faculty']
+
+START_NODE = 11582866 # Vlad
+
 EXECUTION_STATE_FILE = '/data/ingest-vk-data.state'
-TIMER_SEC = None
 OUTPUT_FILE = '/data/vk.data'
+
+TIMER_SEC = None
+DATASET_SIZE = None
 
 queue = []
 
@@ -79,7 +83,7 @@ def process_all_friends_data(node_id):
 
 
 def crawl_graph(start_node_id, process_data_and_get_ids_fn):
-    global queue, TIMER_SEC
+    global queue, TIMER_SEC, DATASET_SIZE
 
     start_time = time.time()
 
@@ -94,6 +98,8 @@ def crawl_graph(start_node_id, process_data_and_get_ids_fn):
         queue += zip(new_node_ids, [cur_depth + 1 for _ in range(len(new_node_ids))])
         persist_execution_state()
         if TIMER_SEC is not None and time.time() - start_time > TIMER_SEC:
+            break
+        if DATASET_SIZE is not None and len(processed_friend_ids) > DATASET_SIZE:
             break
 
 
@@ -118,20 +124,23 @@ def load_execution_state():
 
 
 parser = argparse.ArgumentParser('Fetching university data from vk')
-parser.add_argument('--node', help='start node id')
 parser.add_argument('--file', help='output file')
 parser.add_argument('--state', help='state file')
+parser.add_argument('--node', help='start node id')
 parser.add_argument('--time', help='time limit')
+parser.add_argument('--size', help='dataset size')
 args = vars(parser.parse_args())
 
-if args['node'] is not None:
-    START_NODE = int(args['node'])
 if args['file'] is not None:
     OUTPUT_FILE = str(args['file'])
 if args['state'] is not None:
     EXECUTION_STATE_FILE = str(args['state'])
+if args['node'] is not None:
+    START_NODE = int(args['node'])
 if args['time'] is not None:
     TIMER_SEC = int(args['time'])
+if args['size'] is not None:
+    DATASET_SIZE = int(args['size'])
 
 load_execution_state()
 crawl_graph(START_NODE, process_all_friends_data)
