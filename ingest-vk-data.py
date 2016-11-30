@@ -119,13 +119,13 @@ def load_execution_state():
         print >> sys.stderr, 'execution state does not exist'
 
 
-START_NODE = os.getenv('VK_INGEST_START_NODE', 11582866) # Vlad as default
+START_NODE = int(os.getenv('VK_INGEST_START_NODE', '11582866')) # Vlad as default
 
 EXECUTION_STATE_FILE = os.getenv('VK_INGEST_EXECUTION_STATE_FILE', '/data/ingest-vk-data.state')
 OUTPUT_FILE = os.getenv('VK_INGEST_OUTPUT_FILE', '/data/vk.data')
 
-TIME_LIMIT = os.environ.get('VK_INGEST_TIME_LIMIT')
-DATASET_SIZE = os.environ.get('VK_INGEST_DATASET_SIZE')
+TIME_LIMIT = int(os.environ.get('VK_INGEST_TIME_LIMIT'))
+DATASET_SIZE = int(os.environ.get('VK_INGEST_DATASET_SIZE'))
 
 print >> sys.stderr, 'start node:', START_NODE
 print >> sys.stderr, 'path to execution state file:', EXECUTION_STATE_FILE
