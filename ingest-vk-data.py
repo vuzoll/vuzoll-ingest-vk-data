@@ -89,8 +89,10 @@ def crawl_graph(start_node_id, process_data_and_get_ids_fn):
         print >> sys.stderr, 'new ids count:', len(new_node_ids), 'total ids count:', len(processed_friend_ids)
         queue += zip(new_node_ids, [cur_depth + 1 for _ in range(len(new_node_ids))])
         persist_execution_state()
+        print >> sys.stderr, 'time already passed:', time.time() - start_time, 'time limitation:', TIME_LIMIT
         if TIME_LIMIT is not None and time.time() - start_time > TIME_LIMIT:
             break
+        print >> sys.stderr, 'data already ingested:', len(processed_friend_ids), 'data size limitation:', DATASET_SIZE
         if DATASET_SIZE is not None and len(processed_friend_ids) > DATASET_SIZE:
             break
 
