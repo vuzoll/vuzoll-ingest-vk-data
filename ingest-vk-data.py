@@ -123,5 +123,11 @@ OUTPUT_FILE = os.getenv('VK_INGEST_OUTPUT_FILE', '/data/vk.data')
 TIME_LIMIT = os.environ.get('VK_INGEST_TIME_LIMIT')
 DATASET_SIZE = os.environ.get('VK_INGEST_DATASET_SIZE')
 
+print >> sys.stderr, 'start node:', START_NODE
+print >> sys.stderr, 'path to execution state file:', EXECUTION_STATE_FILE
+print >> sys.stderr, 'path to output file:', OUTPUT_FILE
+print >> sys.stderr, 'time limit:', TIME_LIMIT
+print >> sys.stderr, 'data size limit:', DATASET_SIZE
+
 load_execution_state()
 crawl_graph(START_NODE, process_all_friends_data)

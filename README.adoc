@@ -21,14 +21,15 @@ docker run -dit -v /data:/data -e "$CONFIG" vuzoll/vuzoll-ingest-vk-data:$TAG # 
 
 You can configure following parameters:
 
-START_NODE - starting node for ingestion (Vlad by default)
+VK_INGEST_START_NODE - starting node for ingestion (Vlad by default)
 
-EXECUTION_STATE_FILE - path to file to store ingestion execution state (/data/ingest-vk-data.state by default)
+VK_INGEST_EXECUTION_STATE_FILE - path to file to store ingestion execution state (/data/ingest-vk-data.state by default)
 
-OUTPUT_FILE - path to file to store ingested data (/data/vk.data by default)
+VK_INGEST_OUTPUT_FILE - path to file to store ingested data (/data/vk.data by default)
 
-TIME_LIMIT - time limitation on ingestion process (no limit by default)
-DATASET_SIZE - data set size limitation on ingestion process (no limit by default)
+VK_INGEST_TIME_LIMIT - time limitation on ingestion process (no limit by default)
+
+VK_INGEST_DATASET_SIZE - data set size limitation on ingestion process (no limit by default)
 
 == HOWTO: check that service is up
 
