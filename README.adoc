@@ -16,8 +16,19 @@ docker ps # to determine if container is already running
 docker kill $CONTAINER_ID # if needed
 
 docker pull vuzoll/vuzoll-ingest-vk-data:$TAG # to load specific image
-docker run -dit -v /data:/data vuzoll/vuzoll-ingest-vk-data:$TAG # to start specific image
+docker run -dit -v /data:/data -e "$CONFIG" vuzoll/vuzoll-ingest-vk-data:$TAG # to start specific image
 ----
+
+You can configure following parameters:
+
+START_NODE - starting node for ingestion (Vlad by default)
+
+EXECUTION_STATE_FILE - path to file to store ingestion execution state (/data/ingest-vk-data.state by default)
+
+OUTPUT_FILE - path to file to store ingested data (/data/vk.data by default)
+
+TIME_LIMIT - time limitation on ingestion process (no limit by default)
+DATASET_SIZE - data set size limitation on ingestion process (no limit by default)
 
 == HOWTO: check that service is up
 
