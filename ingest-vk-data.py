@@ -90,11 +90,11 @@ def crawl_graph(start_node_id, process_data_and_get_ids_fn):
         queue += zip(new_node_ids, [cur_depth + 1 for _ in range(len(new_node_ids))])
         persist_execution_state()
         print >> sys.stderr, 'time already passed:', time.time() - start_time, 'time limitation:', TIME_LIMIT
-        if TIME_LIMIT is not None and time.time() - start_time > TIME_LIMIT:
+        if TIME_LIMIT > 0 and time.time() - start_time > TIME_LIMIT:
             print >> sys.stderr, 'time limitation exceeded'
             break
         print >> sys.stderr, 'data already ingested:', len(processed_friend_ids), 'data size limitation:', DATASET_SIZE
-        if DATASET_SIZE is not None and len(processed_friend_ids) > DATASET_SIZE:
+        if DATASET_SIZE > 0 and len(processed_friend_ids) > DATASET_SIZE:
             print >> sys.stderr, 'data size exceeded'
             break
 
@@ -124,8 +124,8 @@ START_NODE = int(os.getenv('VK_INGEST_START_NODE', '11582866')) # Vlad as defaul
 EXECUTION_STATE_FILE = os.getenv('VK_INGEST_EXECUTION_STATE_FILE', '/data/ingest-vk-data.state')
 OUTPUT_FILE = os.getenv('VK_INGEST_OUTPUT_FILE', '/data/vk.data')
 
-TIME_LIMIT = int(os.environ.get('VK_INGEST_TIME_LIMIT'))
-DATASET_SIZE = int(os.environ.get('VK_INGEST_DATASET_SIZE'))
+TIME_LIMIT = int(os.getenv('VK_INGEST_TIME_LIMIT', '0'))
+DATASET_SIZE = int(os.getenv('VK_INGEST_DATASET_SIZE', '0'))
 
 print >> sys.stderr, 'start node:', START_NODE
 print >> sys.stderr, 'path to execution state file:', EXECUTION_STATE_FILE
