@@ -1,18 +1,14 @@
 import vk
 import json
-import argparse
+import os
 import time
 import sys
 
 
 REQUEST_FIELDS = ['country', 'city', 'universities', 'education', 'occupation', 'career']
-START_NODE = 11582866 # me
 FIELDS_TO_REMOVE = ['uid', 'first_name', 'last_name', 'hidden']
 NECESSARY_FIELDS = ['career', 'universities', 'education', 'occupation',
                     'university_name', 'university', 'faculty_name', 'faculty']
-EXECUTION_STATE_FILE = '/data/ingest-vk-data.state'
-TIMER_SEC = None
-OUTPUT_FILE = '/data/vk.data'
 
 queue = []
 
@@ -79,7 +75,7 @@ def process_all_friends_data(node_id):
 
 
 def crawl_graph(start_node_id, process_data_and_get_ids_fn):
-    global queue, TIMER_SEC
+    global queue, TIME_LIMIT, DATASET_SIZE
 
     start_time = time.time()
 
@@ -93,7 +89,13 @@ def crawl_graph(start_node_id, process_data_and_get_ids_fn):
         print >> sys.stderr, 'new ids count:', len(new_node_ids), 'total ids count:', len(processed_friend_ids)
         queue += zip(new_node_ids, [cur_depth + 1 for _ in range(len(new_node_ids))])
         persist_execution_state()
-        if TIMER_SEC is not None and time.time() - start_time > TIMER_SEC:
+        print >> sys.stderr, 'time already passed:', time.time() - start_time, 'time limitation:', TIME_LIMIT
+        if TIME_LIMIT > 0 and time.time() - start_time > TIME_LIMIT:
+            print >> sys.stderr, 'time limitation exceeded'
+            break
+        print >> sys.stderr, 'data already ingested:', len(processed_friend_ids), 'data size limitation:', DATASET_SIZE
+        if DATASET_SIZE > 0 and len(processed_friend_ids) > DATASET_SIZE:
+            print >> sys.stderr, 'data size exceeded'
             break
 
 
@@ -117,21 +119,19 @@ def load_execution_state():
         print >> sys.stderr, 'execution state does not exist'
 
 
-parser = argparse.ArgumentParser('Fetching university data from vk')
-parser.add_argument('--node', help='start node id')
-parser.add_argument('--file', help='output file')
-parser.add_argument('--state', help='state file')
-parser.add_argument('--time', help='time limit')
-args = vars(parser.parse_args())
+START_NODE = int(os.getenv('VK_INGEST_START_NODE', '11582866')) # Vlad as default
 
-if args['node'] is not None:
-    START_NODE = int(args['node'])
-if args['file'] is not None:
-    OUTPUT_FILE = str(args['file'])
-if args['state'] is not None:
-    EXECUTION_STATE_FILE = str(args['state'])
-if args['time'] is not None:
-    TIMER_SEC = int(args['time'])
+EXECUTION_STATE_FILE = os.getenv('VK_INGEST_EXECUTION_STATE_FILE', '/data/ingest-vk-data.state')
+OUTPUT_FILE = os.getenv('VK_INGEST_OUTPUT_FILE', '/data/vk.data')
+
+TIME_LIMIT = int(os.getenv('VK_INGEST_TIME_LIMIT', '0'))
+DATASET_SIZE = int(os.getenv('VK_INGEST_DATASET_SIZE', '0'))
+
+print >> sys.stderr, 'start node:', START_NODE
+print >> sys.stderr, 'path to execution state file:', EXECUTION_STATE_FILE
+print >> sys.stderr, 'path to output file:', OUTPUT_FILE
+print >> sys.stderr, 'time limit:', TIME_LIMIT
+print >> sys.stderr, 'data size limit:', DATASET_SIZE
 
 load_execution_state()
 crawl_graph(START_NODE, process_all_friends_data)
