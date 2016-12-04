@@ -1,6 +1,10 @@
 = vuzoll-ingest-vk-data
 
-Microservice for ingesting Vk data.
+Microservice for generating exploration reports from vk data.
+
+TravisCI - https://travis-ci.org/vuzoll/vuzoll-ingest-vk-data/
+
+DockerHub - https://hub.docker.com/r/vuzoll/vuzoll-ingest-vk-data/
 
 == HOWTO: start with docker
 
@@ -12,8 +16,20 @@ docker ps # to determine if container is already running
 docker kill $CONTAINER_ID # if needed
 
 docker pull vuzoll/vuzoll-ingest-vk-data:$TAG # to load specific image
-docker run -dit -v /data:/data vuzoll/vuzoll-ingest-vk-data:$TAG # to start specific image
+docker run -dit -v /data:/data -e "$CONFIG" vuzoll/vuzoll-ingest-vk-data:$TAG # to start specific image
 ----
+
+You can configure following parameters:
+
+VK_INGEST_START_NODE - starting node for ingestion (Vlad by default)
+
+VK_INGEST_EXECUTION_STATE_FILE - path to file to store ingestion execution state (/data/ingest-vk-data.state by default)
+
+VK_INGEST_OUTPUT_FILE - path to file to store ingested data (/data/vk.data by default)
+
+VK_INGEST_TIME_LIMIT - time limitation on ingestion process (no limit by default)
+
+VK_INGEST_DATASET_SIZE - data set size limitation on ingestion process (no limit by default)
 
 == HOWTO: check that service is up
 
