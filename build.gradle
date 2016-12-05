@@ -26,3 +26,6 @@ dependencies {
 
     compile 'com.vk.api:sdk:0.3.6'
 }
+
+apply plugin: 'application'
+mainClassName = 'com.github.vuzoll.ingestvk.Application'
