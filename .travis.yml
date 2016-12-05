@@ -1,11 +1,14 @@
 sudo: required
 
-language: python
+language: java
 
 services:
 - docker
 
-script:
+before_install:
+- chmod +x gradlew
+
+before_script:
 - docker login -e="$DOCKER_EMAIL" -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD"
 
 after_script:
