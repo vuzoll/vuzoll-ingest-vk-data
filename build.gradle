@@ -22,5 +22,7 @@ repositories {
 dependencies {
     compile 'org.springframework.boot:spring-boot-starter-web'
 
+    compile 'org.codehaus.groovy:groovy-all'
+
     compile 'com.vk.api:sdk:0.3.6'
 }
