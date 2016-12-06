@@ -2,7 +2,7 @@ package com.github.vuzoll.ingestvk
 
 class IngestRequest {
 
-    Integer startId
+    Integer seedId
     Integer timeLimit
     Integer sizeLimit
 }
