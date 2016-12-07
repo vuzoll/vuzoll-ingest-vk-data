@@ -16,27 +16,27 @@ docker ps # to determine if container is already running
 docker kill $CONTAINER_ID # if needed
 
 docker pull vuzoll/vuzoll-ingest-vk-data:$TAG # to load specific image
-docker run -dit -v /data:/data -e "$CONFIG" vuzoll/vuzoll-ingest-vk-data:$TAG # to start specific image
+docker run -dit -v /data:/data -p 8080:8080 vuzoll/vuzoll-ingest-vk-data:$TAG # to start specific image
 ----
 
-You can configure following parameters:
+== HOWTO: run service
 
-VK_INGEST_START_NODE - starting node for ingestion (Vlad by default)
+POST to http://138.68.145.93:8080/ingest.
 
-VK_INGEST_EXECUTION_STATE_FILE - path to file to store ingestion execution state (/data/ingest-vk-data.state by default)
+Following constaints are avaiable for POST body:
 
-VK_INGEST_OUTPUT_FILE - path to file to store ingested data (/data/vk.data by default)
-
-VK_INGEST_TIME_LIMIT - time limitation on ingestion process (no limit by default)
-
-VK_INGEST_DATASET_SIZE - data set size limitation on ingestion process (no limit by default)
-
-== HOWTO: check that service is up
-
-[source,shell]
+[source]
 ----
-ls /data
-wc /data/*
-tail /data/vk.data
-tail /data/ingest-vk-data.state
+{
+  "seedId": ?,
+  "timeLimit": ?, // in seconds
+  "ingestedLimit": ?,
+  "dataSizeLimit": 300
+}
 ----
+
+Following environment variable are avaiable for global service configuration:
+
+INGEST_VK_DATA_FILE_PATH - path to data file (default is /data/vk.data)
+
+INGEST_VK_DEFAULT_SEED_ID - initial vk id to use if data file is empty
