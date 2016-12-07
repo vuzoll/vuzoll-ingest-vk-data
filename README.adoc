@@ -16,7 +16,7 @@ docker ps # to determine if container is already running
 docker kill $CONTAINER_ID # if needed
 
 docker pull vuzoll/vuzoll-ingest-vk-data:$TAG # to load specific image
-docker run -dit -p 8080:8080 vuzoll/vuzoll-ingest-vk-data:$TAG # to start specific image
+docker run -dit -v /data:/data -p 8080:8080 vuzoll/vuzoll-ingest-vk-data:$TAG # to start specific image
 ----
 
 == HOWTO: run service

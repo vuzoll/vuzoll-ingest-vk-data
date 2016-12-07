@@ -85,13 +85,14 @@ class IngestVkController {
     }
 
     VkProfile ingestById(Integer id) {
+        Thread.sleep(TimeUnit.SECONDS.toMillis(1))
+
         VkProfile.fromVkAPI(
                 vk.users()  .get()
                             .userIds(id.toString())
                             .fields(UserField.CITY, UserField.COUNTRY, UserField.EDUCATION, UserField.UNIVERSITIES)
                             .execute().get(0)
         )
-        Thread.sleep(TimeUnit.SECONDS.toMillis(1))
     }
 
     void insertProfile(VkProfile vkProfile) {
@@ -103,10 +104,11 @@ class IngestVkController {
     }
 
     List<Integer> getFriendsIds(Integer id) {
+        Thread.sleep(TimeUnit.SECONDS.toMillis(1))
+        
         vk.friends().get()
                     .userId(id)
                     .execute()
                     .items
-        Thread.sleep(TimeUnit.SECONDS.toMillis(1))
     }
 }
