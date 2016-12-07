@@ -19,6 +19,24 @@ docker pull vuzoll/vuzoll-ingest-vk-data:$TAG # to load specific image
 docker run -dit -p 8080:8080 vuzoll/vuzoll-ingest-vk-data:$TAG # to start specific image
 ----
 
-== HOWTO: check that service is up
+== HOWTO: run service
 
-POST to http://138.68.145.93:8080/ingest
+POST to http://138.68.145.93:8080/ingest.
+
+Following constaints are avaiable for POST body:
+
+[source]
+----
+{
+  "seedId": ?,
+  "timeLimit": ?, // in seconds
+  "ingestedLimit": ?,
+  "dataSizeLimit": 300
+}
+----
+
+Following environment variable are avaiable for global service configuration:
+
+INGEST_VK_DATA_FILE_PATH - path to data file (default is /data/vk.data)
+
+INGEST_VK_DEFAULT_SEED_ID - initial vk id to use if data file is empty

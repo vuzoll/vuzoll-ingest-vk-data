@@ -17,7 +17,7 @@ import java.util.concurrent.TimeUnit
 class IngestVkController {
 
     static String DATA_FILE_PATH = System.getenv('INGEST_VK_DATA_FILE_PATH') ?: '/data/vk.data'
-    static Integer DEFAULT_SEED_ID = Integer.parseInt(System.getenv('INGEST_VK_DEFAULT_DEED_ID') ?: '3542756')
+    static Integer DEFAULT_SEED_ID = Integer.parseInt(System.getenv('INGEST_VK_DEFAULT_SEED_ID') ?: '3542756')
 
     VkApiClient vk = new VkApiClient(HttpTransportClient.getInstance())
     JsonSlurper jsonSlurper = new JsonSlurper()
