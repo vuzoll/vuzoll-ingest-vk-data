@@ -3,27 +3,33 @@ package com.github.vuzoll.ingestvk
 import com.vk.api.sdk.client.VkApiClient
 import com.vk.api.sdk.httpclient.HttpTransportClient
 import com.vk.api.sdk.queries.users.UserField
+import groovy.json.JsonOutput
+import groovy.json.JsonSlurper
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
+import org.springframework.web.bind.annotation.ResponseBody
 import org.springframework.web.bind.annotation.RestController
+
+import java.util.concurrent.TimeUnit
 
 @RestController
 class IngestVkController {
 
-    static String DATA_FILE_PATH = '/data/vk.data'
-    static Integer DEFAULT_SEED_ID = 3542756
+    static String DATA_FILE_PATH = System.getenv('INGEST_VK_DATA_FILE_PATH') ?: '/data/vk.data'
+    static Integer DEFAULT_SEED_ID = Integer.parseInt(System.getenv('INGEST_VK_DEFAULT_DEED_ID') ?: '3542756')
 
     VkApiClient vk = new VkApiClient(HttpTransportClient.getInstance())
+    JsonSlurper jsonSlurper = new JsonSlurper()
     File dataFile = new File(DATA_FILE_PATH)
 
     @RequestMapping(path = '/ingest', method = RequestMethod.POST)
-    void ingest(@RequestBody IngestRequest ingestRequest) {
+    @ResponseBody IngestResponse ingest(@RequestBody IngestRequest ingestRequest) {
         int index = 0
-        int startTime = System.currentTimeMillis()
+        long startTime = System.currentTimeMillis()
         int ingestedCount = 0
 
-        List<Integer> ids = readAllIds()
+        Set<Integer> ids = readAllIds()
         if (ids.empty) {
             Integer seedId = ingestRequest.seedId ?: DEFAULT_SEED_ID
             VkProfile seed = ingestById(seedId)
@@ -34,52 +40,66 @@ class IngestVkController {
 
         while (true) {
             if (index >= ids.size()) {
-                return
+                break
             }
 
-            if (ingestRequest.timeLimit && System.currentTimeMillis() >= startTime + ingestRequest.timeLimit) {
-                return
+            if (ingestRequest.timeLimit != null && System.currentTimeMillis() >= startTime + TimeUnit.SECONDS.toMillis(ingestRequest.timeLimit)) {
+                break
             }
 
-            if (ingestRequest.sizeLimit && ingestedCount >= ingestRequest.sizeLimit) {
-                return
+            if (ingestRequest.dataSizeLimit != null && ids.size() >= ingestRequest.dataSizeLimit) {
+                break
+            }
+
+            if (ingestRequest.ingestedLimit != null && ingestedCount >= ingestRequest.ingestedLimit) {
+                break
             }
 
             List<Integer> friendsIds = getFriendsIds(ids[index])
-            friendsIds.collect({
-                ids.add it
-                ingestById it
+            friendsIds.findAll({
+                !ids.contains(it)
             }).each({
+                ids.add it
+                VkProfile newProfile = ingestById it
+                insertProfile newProfile
                 ingestedCount++
-                insertProfile it
             })
+
+            index++
         }
+
+        return new IngestResponse(timeTaken: TimeUnit.SECONDS.convert(System.currentTimeMillis() - startTime, TimeUnit.MILLISECONDS), recordsIngested: ingestedCount, recordsCount: ids.size())
     }
 
-    List<Integer> readAllIds() {
+    Set<Integer> readAllIds() {
         if (!dataFile.exists()) {
             return []
         }
 
         List<Integer> ids = []
         dataFile.eachLine { String line ->
-            ids.add VkProfile.readIdFromDataFileLine(line)
+            ids.add jsonSlurper.parseText(line).vkId
         }
 
         return ids
     }
 
     VkProfile ingestById(Integer id) {
-        VkProfile.fromVkAPI vk.users()  .get()
-                                        .userIds(id.toString())
-                                        .fields(
-                                            UserField.SEX, UserField.BDATE, UserField.CITY, UserField.COUNTRY, UserField.HOME_TOWN,
-                                            UserField.EDUCATION, UserField.UNIVERSITIES, UserField.SCHOOLS, UserField.OCCUPATION, UserField.CAREER
-                                        ).execute().get(0)
+        VkProfile.fromVkAPI(
+                vk.users()  .get()
+                            .userIds(id.toString())
+                            .fields(UserField.CITY, UserField.COUNTRY, UserField.EDUCATION, UserField.UNIVERSITIES)
+                            .execute().get(0)
+        )
+        Thread.sleep(TimeUnit.SECONDS.toMillis(1))
     }
 
     void insertProfile(VkProfile vkProfile) {
-        dataFile.append vkProfile.toDataFileLine()
+        if (!dataFile.exists()) {
+            dataFile.createNewFile()
+        }
+
+        dataFile.append "${JsonOutput.toJson(vkProfile)}\n"
     }
 
     List<Integer> getFriendsIds(Integer id) {
@@ -87,5 +107,6 @@ class IngestVkController {
                     .userId(id)
                     .execute()
                     .items
+        Thread.sleep(TimeUnit.SECONDS.toMillis(1))
     }
 }

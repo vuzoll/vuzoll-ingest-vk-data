@@ -4,5 +4,6 @@ class IngestRequest {
 
     Integer seedId
     Integer timeLimit
-    Integer sizeLimit
+    Integer ingestedLimit
+    Integer dataSizeLimit
 }
