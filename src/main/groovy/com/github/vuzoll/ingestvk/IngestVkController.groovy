@@ -29,63 +29,75 @@ class IngestVkController {
     @ResponseBody IngestResponse ingest(@RequestBody IngestRequest ingestRequest) {
         log.info "Receive ingest request: $ingestRequest"
 
-        int index = 0
         long startTime = System.currentTimeMillis()
+        int index = 0
         int ingestedCount = 0
+        Set<Integer> ids = []
 
-        log.info 'Reading already ingested data...'
-        Set<Integer> ids = readAllIds()
-        if (ids.empty) {
-            Integer seedId = ingestRequest.seedId ?: DEFAULT_SEED_ID
-            log.warn "There is no ingested data so far. Will use id:$seedId as seed profile"
+        String message = null
 
-            VkProfile seed = ingestById(seedId)
-            insertProfile seed
-            ingestedCount++
-            ids.add seedId
-        }
+        try {
+            log.info 'Reading already ingested data...'
+            ids = readAllIds()
+            if (ids.empty) {
+                Integer seedId = ingestRequest.seedId ?: DEFAULT_SEED_ID
+                log.warn "There is no ingested data so far. Will use id:$seedId as seed profile"
 
-        while (true) {
-            log.info "Handling position $index / ${ids.size()} in ingestion queue"
-            log.info "Ingestion already has taken ${TimeUnit.SECONDS.convert(System.currentTimeMillis() - startTime, TimeUnit.MILLISECONDS)} sec"
-            log.info "Current dataset size: ${ids.size()} records"
-            log.info "Already ingested: ${ingestedCount} records"
-
-            if (index >= ids.size()) {
-                log.info 'Ingestion queue is empty'
-                break
-            }
-
-            if (ingestRequest.timeLimit != null && System.currentTimeMillis() >= startTime + TimeUnit.SECONDS.toMillis(ingestRequest.timeLimit)) {
-                log.info 'Time limit is reached'
-                break
-            }
-
-            if (ingestRequest.dataSizeLimit != null && ids.size() >= ingestRequest.dataSizeLimit) {
-                log.info 'Dataset size limit is reached'
-                break
-            }
-
-            if (ingestRequest.ingestedLimit != null && ingestedCount >= ingestRequest.ingestedLimit) {
-                log.info 'Ingested records limit is reached'
-                break
-            }
-
-            List<Integer> friendsIds = getFriendsIds(ids[index])
-            friendsIds.findAll({
-                !ids.contains(it)
-            }).each({
-                log.info "Found new profile id:$it"
-                ids.add it
-                VkProfile newProfile = ingestById it
-                insertProfile newProfile
+                VkProfile seed = ingestById(seedId)
+                insertProfile seed
                 ingestedCount++
-            })
+                ids.add seedId
+            }
 
-            index++
+            while (true) {
+                log.info "Handling position $index / ${ids.size()} in ingestion queue"
+                log.info "Ingestion already has taken ${TimeUnit.SECONDS.convert(System.currentTimeMillis() - startTime, TimeUnit.MILLISECONDS)} sec"
+                log.info "Current dataset size: ${ids.size()} records"
+                log.info "Already ingested: ${ingestedCount} records"
+
+                if (index >= ids.size()) {
+                    message = 'Ingestion queue is empty'
+                    log.info message
+                    break
+                }
+
+                if (ingestRequest.timeLimit != null && System.currentTimeMillis() >= startTime + TimeUnit.SECONDS.toMillis(ingestRequest.timeLimit)) {
+                    message = 'Time limit is reached'
+                    log.info message
+                    break
+                }
+
+                if (ingestRequest.dataSizeLimit != null && ids.size() >= ingestRequest.dataSizeLimit) {
+                    message = 'Dataset size limit is reached'
+                    log.info message
+                    break
+                }
+
+                if (ingestRequest.ingestedLimit != null && ingestedCount >= ingestRequest.ingestedLimit) {
+                    message = 'Ingested records limit is reached'
+                    log.info message
+                    break
+                }
+
+                List<Integer> friendsIds = getFriendsIds(ids[index])
+                friendsIds.findAll({
+                    !ids.contains(it)
+                }).each({
+                    log.info "Found new profile id:$it"
+                    ids.add it
+                    VkProfile newProfile = ingestById it
+                    insertProfile newProfile
+                    ingestedCount++
+                })
+
+                index++
+            }
+        } catch (e) {
+            message = "Error while ingesting data: ${e.message}"
+            log.error(message, e)        
+        } finally {
+            return new IngestResponse(timeTaken: TimeUnit.SECONDS.convert(System.currentTimeMillis() - startTime, TimeUnit.MILLISECONDS), recordsIngested: ingestedCount, recordsCount: ids.size(), message: message)
         }
-
-        return new IngestResponse(timeTaken: TimeUnit.SECONDS.convert(System.currentTimeMillis() - startTime, TimeUnit.MILLISECONDS), recordsIngested: ingestedCount, recordsCount: ids.size())
     }
 
     Set<Integer> readAllIds() {

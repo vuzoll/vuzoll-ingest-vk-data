@@ -5,4 +5,5 @@ class IngestResponse {
     Integer timeTaken
     Integer recordsIngested
     Integer recordsCount
+    String message
 }
