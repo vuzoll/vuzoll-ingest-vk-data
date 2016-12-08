@@ -105,7 +105,7 @@ class IngestVkController {
 
     List<Integer> getFriendsIds(Integer id) {
         Thread.sleep(TimeUnit.SECONDS.toMillis(1))
-        
+
         vk.friends().get()
                     .userId(id)
                     .execute()

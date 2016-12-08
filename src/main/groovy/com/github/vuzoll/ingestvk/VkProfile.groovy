@@ -16,7 +16,7 @@ class VkProfile {
         VkProfile vkProfile = new VkProfile()
         vkProfile.vkId = vkApiUser.id
         vkProfile.name = "$vkApiUser.firstName $vkApiUser.lastName"
-        vkProfile.city = City.fromVkApi(vkApiUser.city)
+        vkProfile.city = City.fromVkApi(vkApiUser.city, vkApiUser.country)
         vkProfile.country = Country.fromVkApi(vkApiUser.country)
         vkProfile.educationRecords = ([ EducationRecord.fromVkApi(vkApiUser) ] + vkApiUser.universities.collect({ EducationRecord.fromVkApi(it) })).findAll { it != null }
 
