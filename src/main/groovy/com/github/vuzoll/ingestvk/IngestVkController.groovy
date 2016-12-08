@@ -5,6 +5,7 @@ import com.vk.api.sdk.httpclient.HttpTransportClient
 import com.vk.api.sdk.queries.users.UserField
 import groovy.json.JsonOutput
 import groovy.json.JsonSlurper
+import groovy.util.logging.Slf4j
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestMethod
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController
 import java.util.concurrent.TimeUnit
 
 @RestController
+@Slf4j
 class IngestVkController {
 
     static String DATA_FILE_PATH = System.getenv('INGEST_VK_DATA_FILE_PATH') ?: '/data/vk.data'
@@ -25,13 +27,18 @@ class IngestVkController {
 
     @RequestMapping(path = '/ingest', method = RequestMethod.POST)
     @ResponseBody IngestResponse ingest(@RequestBody IngestRequest ingestRequest) {
+        log.info "Receive ingest request: $ingestRequest"
+
         int index = 0
         long startTime = System.currentTimeMillis()
         int ingestedCount = 0
 
+        log.info 'Reading already ingested data...'
         Set<Integer> ids = readAllIds()
         if (ids.empty) {
             Integer seedId = ingestRequest.seedId ?: DEFAULT_SEED_ID
+            log.warn "There is no ingested data so far. Will use id:$seedId as seed profile"
+
             VkProfile seed = ingestById(seedId)
             insertProfile seed
             ingestedCount++
@@ -40,18 +47,22 @@ class IngestVkController {
 
         while (true) {
             if (index >= ids.size()) {
+                log.info 'Ingestion queue is empty'
                 break
             }
 
             if (ingestRequest.timeLimit != null && System.currentTimeMillis() >= startTime + TimeUnit.SECONDS.toMillis(ingestRequest.timeLimit)) {
+                log.info 'Time limit is reached'
                 break
             }
 
             if (ingestRequest.dataSizeLimit != null && ids.size() >= ingestRequest.dataSizeLimit) {
+                log.info 'Dataset size limit is reached'
                 break
             }
 
             if (ingestRequest.ingestedLimit != null && ingestedCount >= ingestRequest.ingestedLimit) {
+                log.info 'Ingested records limit is reached'
                 break
             }
 
@@ -59,6 +70,7 @@ class IngestVkController {
             friendsIds.findAll({
                 !ids.contains(it)
             }).each({
+                log.info "Found new profile id:$it"
                 ids.add it
                 VkProfile newProfile = ingestById it
                 insertProfile newProfile
@@ -85,6 +97,7 @@ class IngestVkController {
     }
 
     VkProfile ingestById(Integer id) {
+        log.info "Loading profile id:$id..."
         Thread.sleep(TimeUnit.SECONDS.toMillis(1))
 
         VkProfile.fromVkAPI(
@@ -97,13 +110,16 @@ class IngestVkController {
 
     void insertProfile(VkProfile vkProfile) {
         if (!dataFile.exists()) {
+            log.warn 'Data file not exists, creating it...'
             dataFile.createNewFile()
         }
 
+        log.info "Adding profile id:$vkProfile.vkId to the storage..."
         dataFile.append "${JsonOutput.toJson(vkProfile)}\n"
     }
 
     List<Integer> getFriendsIds(Integer id) {
+        log.info "Getting friend list of profile id:$id..."
         Thread.sleep(TimeUnit.SECONDS.toMillis(1))
 
         vk.friends().get()
