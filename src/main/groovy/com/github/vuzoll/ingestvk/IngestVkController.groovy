@@ -46,6 +46,11 @@ class IngestVkController {
         }
 
         while (true) {
+            log.info "Handling position $index / ${ids.size()} in ingestion queue"
+            log.info "Ingestion already has taken ${TimeUnit.SECONDS.convert(System.currentTimeMillis() - startTime, TimeUnit.MILLISECONDS)} sec"
+            log.info "Current dataset size: ${ids.size()} records"
+            log.info "Already ingested: ${ingestedCount} records"
+
             if (index >= ids.size()) {
                 log.info 'Ingestion queue is empty'
                 break
