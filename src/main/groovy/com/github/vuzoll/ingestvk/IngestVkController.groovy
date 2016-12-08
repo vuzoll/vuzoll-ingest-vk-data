@@ -115,7 +115,7 @@ class IngestVkController {
 
     VkProfile ingestById(Integer id) {
         log.info "Loading profile id:$id..."
-        Thread.sleep(TimeUnit.SECONDS.toMillis(1))
+        Thread.sleep(400)
 
         VkProfile.fromVkAPI(
                 vk.users()  .get()
@@ -137,11 +137,16 @@ class IngestVkController {
 
     List<Integer> getFriendsIds(Integer id) {
         log.info "Getting friend list of profile id:$id..."
-        Thread.sleep(TimeUnit.SECONDS.toMillis(1))
+        Thread.sleep(400)
 
-        vk.friends().get()
+        try {
+            return vk.friends().get()
                     .userId(id)
                     .execute()
                     .items
+        } catch (e) {
+            log.warn("Failed to get friend list of profile id:$id", e)
+            return []
+        }
     }
 }
