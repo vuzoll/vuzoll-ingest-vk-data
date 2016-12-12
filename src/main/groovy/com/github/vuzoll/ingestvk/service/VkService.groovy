@@ -128,7 +128,7 @@ class VkService {
 
     @Memoized
     Country guessUniversityCounty(Integer universityId, String universityName) {
-        Integer countryId = (1..Integer.MAX_VALUE).find({ isUniversityInCountry(universityId, universityName, it) })
+        Integer countryId = getAllCountriesIds().find({ isUniversityInCountry(universityId, universityName, it) })
         if (countryId) {
             return getCountry(countryId)
         } else {
@@ -149,47 +149,57 @@ class VkService {
         log.debug "Checking if university id:$universityId is located in country id:$countryId"
         Thread.sleep(VK_API_REQUEST_DELAY)
 
-        return vk.database().universities.countryId(countryId).q(universityName).execute().items.find({ it.id == universityId }) != null
+        String query = universityName.substring(0, universityName.indexOf(' '))
+
+        return vk.database().universities.countryId(countryId).lang(Lang.UA).q(query).execute().items.find({ it.id == universityId }) != null
     }
 
     @Memoized
     City guessUniversityCity(Integer universityId, String universityName, Country country) {
-        def candidates
         if (country) {
-            candidates = getCitiesInCountry(country.vkId)
-        } else {
-            candidates = (1..Integer.MAX_VALUE)
-        }
-
-        Integer cityId = candidates.find({ isUniversityInCity(universityId, universityName, it) })
-        if (cityId) {
-            return getCity(cityId)
+            Integer cityId = getCitiesIdByCountry(country.vkId).find({ isUniversityInCity(universityId, universityName, it) })
+            if (cityId) {
+                return getCity(cityId, country.vkId)
+            } else {
+                return null
+            }
         } else {
             return null
         }
     }
 
     @Memoized
-    Country getCity(Integer id) {
-        log.debug "Getting city with id:$id..."
-        Thread.sleep(VK_API_REQUEST_DELAY)
+    City getCity(Integer cityId, Integer countryId) {
+        log.debug "Getting city with id:$cityId..."
+        Thread.sleep(2 * VK_API_REQUEST_DELAY)
 
-        return createCountry(vk.database().citiesById.cityIds(id).execute()[0])
+        return createCity(vk.database().citiesById.cityIds(cityId).execute()[0], vk.database().countriesById.countryIds(countryId).execute()[0])
     }
 
     @Memoized
     boolean isUniversityInCity(Integer universityId, String universityName, Integer cityId) {
-        log.debug "Checking if university id:$universityId is located in city id:$countryId"
+        log.debug "Checking if university id:$universityId is located in city id:$cityId"
         Thread.sleep(VK_API_REQUEST_DELAY)
 
-        return vk.database().universities.cityId(cityId).q(universityName).execute().items.find({ it.id == universityId }) != null
+        String query = universityName.substring(0, universityName.indexOf(' '))
+
+        return vk.database().universities.cityId(cityId).lang(Lang.UA).q(query).execute().items.find({ it.id == universityId }) != null
     }
 
     @Memoized
-    List<Integer> getCitiesInCountry(Country country) {
-        log.debug "Getting list of cities located in country with id:${country.vkId}..."
+    List<Integer> getCitiesIdByCountry(Integer countryId) {
+        log.debug "Getting list of cities located in country with id:$countryId..."
         Thread.sleep(VK_API_REQUEST_DELAY)
 
-        return vk.database().getCities(country.vkId).needAll(true).execute().items.id
+        return vk.database().getCities(countryId).needAll(true).execute().items.id
+    }
+
+    @Memoized
+    List<Integer> getAllCountriesIds() {
+        log.debug 'Getting list of all countries...'
+        Thread.sleep(VK_API_REQUEST_DELAY)
+
+        Integer maxCountryId = vk.database().countries.needAll(true).execute().items.id.max()
+        return (1..maxCountryId)
     }
 }
