@@ -21,4 +21,4 @@ appender('FILE', RollingFileAppender) {
     }
 }
 
-logger('com.github.vuzoll', INFO, [ 'STDOUT', 'FILE' ])
+logger('com.github.vuzoll', DEBUG, [ 'STDOUT', 'FILE' ])

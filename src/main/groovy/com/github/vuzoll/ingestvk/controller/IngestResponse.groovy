@@ -1,4 +1,4 @@
-package com.github.vuzoll.ingestvk
+package com.github.vuzoll.ingestvk.controller
 
 class IngestResponse {
 
