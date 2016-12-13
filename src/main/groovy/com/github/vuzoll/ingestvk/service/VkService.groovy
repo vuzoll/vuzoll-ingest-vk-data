@@ -128,9 +128,8 @@ class VkService {
 
     @Memoized
     Country guessUniversityCounty(Integer universityId, String universityName) {
-        Integer countryId = getAllCountriesIds().find({ isUniversityInCountry(universityId, universityName, it) })
-        if (countryId) {
-            return getCountry(countryId)
+        if (isUniversityInCountry(universityId, universityName, 2)) {
+            return getCountry(2)
         } else {
             return null
         }
@@ -200,14 +199,5 @@ class VkService {
         Thread.sleep(VK_API_REQUEST_DELAY)
 
         return vk.database().getCities(countryId).needAll(true).execute().items.id
-    }
-
-    @Memoized
-    List<Integer> getAllCountriesIds() {
-        log.debug 'Getting list of all countries...'
-        Thread.sleep(VK_API_REQUEST_DELAY)
-
-        Integer maxCountryId = vk.database().countries.needAll(true).execute().items.id.max()
-        return (1..maxCountryId)
     }
 }
