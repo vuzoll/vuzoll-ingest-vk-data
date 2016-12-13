@@ -149,9 +149,13 @@ class VkService {
         log.debug "Checking if university id:$universityId is located in country id:$countryId"
         Thread.sleep(VK_API_REQUEST_DELAY)
 
-        String query = universityName.contains(' ') ? universityName.substring(0, universityName.indexOf(' ')) : universityName
-
-        return vk.database().universities.countryId(countryId).lang(Lang.UA).q(query).execute().items.find({ it.id == universityId }) != null
+        try {
+            String query = universityName.contains(' ') ? universityName.substring(0, universityName.indexOf(' ')) : universityName
+            return vk.database().universities.countryId(countryId).lang(Lang.UA).q(query).execute().items.find({ it.id == universityId }) != null
+        } catch (e) {
+            log.warn("Failed checking if university id:$universityId is located in country id:$countryId", e)
+            return false
+        }
     }
 
     @Memoized
@@ -181,9 +185,13 @@ class VkService {
         log.debug "Checking if university id:$universityId is located in city id:$cityId"
         Thread.sleep(VK_API_REQUEST_DELAY)
 
-        String query = universityName.contains(' ') ? universityName.substring(0, universityName.indexOf(' ')) : universityName
-
-        return vk.database().universities.cityId(cityId).lang(Lang.UA).q(query).execute().items.find({ it.id == universityId }) != null
+        try {
+            String query = universityName.contains(' ') ? universityName.substring(0, universityName.indexOf(' ')) : universityName
+            return vk.database().universities.cityId(cityId).lang(Lang.UA).q(query).execute().items.find({ it.id == universityId }) != null
+        } catch (e) {
+            log.warn("Failed checking if university id:$universityId is located in city id:$cityId", e)
+            return false
+        }
     }
 
     @Memoized
