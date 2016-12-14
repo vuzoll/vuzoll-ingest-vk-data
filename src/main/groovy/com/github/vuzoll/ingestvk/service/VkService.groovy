@@ -160,12 +160,17 @@ class VkService {
     @Memoized
     City guessUniversityCity(Integer universityId, String universityName, Country country) {
         if (country) {
-            Integer cityId = getCitiesIdByCountry(country.vkId).find({ isUniversityInCity(universityId, universityName, it) })
-            if (cityId) {
-                return getCity(cityId, country.vkId)
-            } else {
-                return null
+            int batchSize = 1
+            int offset = 0
+            while (batchSize < Integer.MAX_VALUE / 3) {
+                Integer cityId = streamCitiesIdByCountry(country.vkId, batchSize, offset).find({ isUniversityInCity(universityId, universityName, it) })
+                if (cityId) {
+                    return getCity(cityId, country.vkId)
+                }
+                offset += batchSize
+                batchSize *= 2
             }
+            return null
         } else {
             return null
         }
@@ -194,10 +199,10 @@ class VkService {
     }
 
     @Memoized
-    List<Integer> getCitiesIdByCountry(Integer countryId) {
+    List<Integer> streamCitiesIdByCountry(Integer countryId, Integer batchSize, Integer offset) {
         log.debug "Getting list of cities located in country with id:$countryId..."
         Thread.sleep(VK_API_REQUEST_DELAY)
 
-        return vk.database().getCities(countryId).needAll(true).execute().items.id
+        return vk.database().getCities(countryId).count(batchSize).offset(offset).execute().items.id
     }
 }
