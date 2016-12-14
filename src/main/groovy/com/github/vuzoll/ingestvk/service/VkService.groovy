@@ -8,6 +8,7 @@ import com.github.vuzoll.ingestvk.domain.University
 import com.github.vuzoll.ingestvk.domain.VkProfile
 import com.vk.api.sdk.client.Lang
 import com.vk.api.sdk.client.VkApiClient
+import com.vk.api.sdk.client.actors.UserActor
 import com.vk.api.sdk.httpclient.HttpTransportClient
 import com.vk.api.sdk.objects.base.BaseObject
 import com.vk.api.sdk.objects.users.UserXtrCounters
@@ -20,6 +21,9 @@ import org.springframework.stereotype.Service
 @Slf4j
 class VkService {
 
+    static Integer VK_USER_ID = System.getenv('INGEST_VK_USER_ID') ? Integer.parseInt(System.getenv('INGEST_VK_USER_ID')) : null
+    static String VK_ACCESS_TOKEN = System.getenv('INGEST_VK_ACCESS_TOKEN')
+
     static long VK_API_REQUEST_DELAY = 350
 
     static Map<Integer, City> CITY_CACHE = [:]
@@ -31,11 +35,18 @@ class VkService {
         log.debug "Loading profile id:$id..."
         Thread.sleep(VK_API_REQUEST_DELAY)
 
-        UserXtrCounters vkApiUser = vk.users()  .get()
-                                                .userIds(id.toString())
-                                                .fields(UserField.CITY, UserField.COUNTRY, UserField.EDUCATION, UserField.UNIVERSITIES)
-                                                .lang(Lang.UA)
-                                                .execute().get(0)
+        def vkRequest
+        if (VK_USER_ID && VK_ACCESS_TOKEN) {
+            vkRequest = vk.users().get(new UserActor(VK_USER_ID, VK_ACCESS_TOKEN))
+        } else {
+            vkRequest = vk.users().get()
+        }
+
+        UserXtrCounters vkApiUser = vkRequest
+                                        .userIds(id.toString())
+                                        .fields(UserField.CITY, UserField.COUNTRY, UserField.EDUCATION, UserField.UNIVERSITIES)
+                                        .lang(Lang.UA)
+                                        .execute().get(0)
 
         VkProfile vkProfile = new VkProfile()
         vkProfile.vkId = vkApiUser.id
@@ -52,7 +63,14 @@ class VkService {
         Thread.sleep(VK_API_REQUEST_DELAY)
 
         try {
-            return vk.friends().get()
+            def vkRequest
+            if (VK_USER_ID && VK_ACCESS_TOKEN) {
+                vkRequest = vk.friends().get(new UserActor(VK_USER_ID, VK_ACCESS_TOKEN))
+            } else {
+                vkRequest = vk.friends().get()
+            }
+
+            return vkRequest
                     .userId(id)
                     .execute()
                     .items
