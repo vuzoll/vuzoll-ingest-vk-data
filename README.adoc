@@ -20,6 +20,18 @@ docker pull vuzoll/vuzoll-ingest-vk-data:$TAG # to load specific image
 docker run -dit -v /data:/data -v /logs:/logs -p 8080:8080 vuzoll/vuzoll-ingest-vk-data:$TAG # to start specific image
 ----
 
+If you want to authorize your VK API access to be able to ingest secured data do the following:
+
+- Go to https://oauth.vk.com/authorize?client_id=5763182&scope=friends,offline&redirect_uri=https://oauth.vk.com/blank.html&display=page&response_type=token
+- You will be redirected to URL like https://oauth.vk.com/blank.html#access_token=ACCESS_TOKEN&expires_in=0&user_id=USER_ID
+- Copy ACCESS_TOKEN and USER_ID values
+- Use following docker config command to start
+
+[source,shell]
+----
+docker run -dit -v /data:/data -v /logs:/logs -e INGEST_VK_ACCESS_TOKEN=ACCESS_ID -e INGEST_VK_USER_ID=USER_ID -p 8080:8080 vuzoll/vuzoll-ingest-vk-data:$TAG
+----
+
 == HOWTO: run service
 
 POST to http://138.68.145.93:8080/ingest.
