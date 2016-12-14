@@ -200,7 +200,7 @@ class VkService {
 
     @Memoized
     List<Integer> streamCitiesIdByCountry(Integer countryId, Integer batchSize, Integer offset) {
-        log.debug "Getting list of cities located in country with id:$countryId..."
+        log.debug "Streaming $batchSize of cities (starting from $offset) located in country with id:$countryId..."
         Thread.sleep(VK_API_REQUEST_DELAY)
 
         return vk.database().getCities(countryId).count(batchSize).offset(offset).execute().items.id
