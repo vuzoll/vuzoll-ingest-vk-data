@@ -178,17 +178,12 @@ class VkService {
     @Memoized
     City guessUniversityCity(Integer universityId, String universityName, Country country) {
         if (country) {
-            int batchSize = 1
-            int offset = 0
-            while (batchSize < Integer.MAX_VALUE / 3) {
-                Integer cityId = streamCitiesIdByCountry(country.vkId, batchSize, offset).find({ isUniversityInCity(universityId, universityName, it) })
-                if (cityId) {
-                    return getCity(cityId, country.vkId)
-                }
-                offset += batchSize
-                batchSize *= 2
+            Integer cityId = streamCitiesIdByCountry(country.vkId, 1000, 0).find({ isUniversityInCity(universityId, universityName, it) })
+            if (cityId) {
+                return getCity(cityId, country.vkId)
+            } else {
+                return null
             }
-            return null
         } else {
             return null
         }
