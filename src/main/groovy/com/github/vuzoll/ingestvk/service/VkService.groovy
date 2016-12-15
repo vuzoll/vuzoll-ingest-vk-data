@@ -11,7 +11,7 @@ import com.vk.api.sdk.client.VkApiClient
 import com.vk.api.sdk.client.actors.UserActor
 import com.vk.api.sdk.httpclient.HttpTransportClient
 import com.vk.api.sdk.objects.base.BaseObject
-import com.vk.api.sdk.objects.users.UserXtrCounters
+import com.vk.api.sdk.objects.users.UserFull
 import com.vk.api.sdk.queries.users.UserField
 import groovy.transform.Memoized
 import groovy.util.logging.Slf4j
@@ -42,12 +42,27 @@ class VkService {
             vkRequest = vk.users().get()
         }
 
-        UserXtrCounters vkApiUser = vkRequest
-                                        .userIds(id.toString())
-                                        .fields(UserField.CITY, UserField.COUNTRY, UserField.EDUCATION, UserField.UNIVERSITIES)
-                                        .lang(Lang.UA)
-                                        .execute().get(0)
+        UserFull vkApiUser = vkRequest
+                .userIds(id.toString())
+                .fields(UserField.CITY, UserField.COUNTRY, UserField.EDUCATION, UserField.UNIVERSITIES)
+                .lang(Lang.UA)
+                .execute().get(0)
 
+        return toVkProfile(vkApiUser)
+    }
+
+    Collection<Integer> searchStudentIdsFromCountry(Country country, int offset, int count) {
+        log.debug "Loading $count ids of students from country id:$country.vkId starting from index $offset..."
+        Thread.sleep(VK_API_REQUEST_DELAY)
+
+        vk.users().search(new UserActor(VK_USER_ID, VK_ACCESS_TOKEN))
+                .universityCountry(country.vkId)
+                .offset(offset)
+                .count(count)
+                .execute().items.collect({ it.id })
+    }
+
+    private VkProfile toVkProfile(UserFull vkApiUser) {
         VkProfile vkProfile = new VkProfile()
         vkProfile.vkId = vkApiUser.id
         vkProfile.name = "$vkApiUser.firstName $vkApiUser.lastName"
@@ -108,7 +123,7 @@ class VkService {
         }
     }
 
-    EducationRecord createEducationRecord(UserXtrCounters vkApiUser) {
+    EducationRecord createEducationRecord(UserFull vkApiUser) {
         if (vkApiUser.university || vkApiUser.faculty) {
             new EducationRecord(university: getUniversity(vkApiUser.university, vkApiUser.universityName), faculty: getFaculty(vkApiUser.faculty, vkApiUser.facultyName, vkApiUser.university, vkApiUser.universityName), graduationYear: vkApiUser.graduation)
         } else {

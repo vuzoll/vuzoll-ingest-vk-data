@@ -34,7 +34,8 @@ docker run -dit -v /data:/data -v /logs:/logs -e INGEST_VK_ACCESS_TOKEN=ACCESS_I
 
 == HOWTO: run service
 
-POST to http://138.68.145.93:8080/ingest.
+POST to http://138.68.145.93:8080/ingest/bfs
+POST to http://138.68.145.93:8080/ingest/search
 
 Following constaints are avaiable for POST body:
 
