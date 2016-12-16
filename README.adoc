@@ -43,7 +43,7 @@ Following constaints are avaiable for POST body:
 ----
 {
   "seedId": ?,
-  "timeLimit": ?, // in seconds
+  "timeLimit": ?, // like '1h28min17sec'
   "ingestedLimit": ?,
   "dataSizeLimit": 300
 }
