@@ -162,6 +162,11 @@ class IngestVkController {
                 })
 
                 offset += batchSize
+                int countStudentsFromUkraine = vkService.countStudentsFromCountry(ukraine)
+                if (offset >= countStudentsFromUkraine) {
+                    log.warn "Exceeded count of students from Ukraine reported from VK API: ${countStudentsFromUkraine}, returning to the start of the list"
+                    offset = 0
+                }
             } catch (e) {
                 message = "Error while ingesting data: ${e.message}"
                 log.error(message, e)
