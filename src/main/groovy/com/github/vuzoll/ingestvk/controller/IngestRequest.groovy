@@ -6,7 +6,7 @@ import groovy.transform.ToString
 class IngestRequest {
 
     Integer seedId
-    Integer timeLimit
+    String timeLimit
     Integer ingestedLimit
     Integer dataSizeLimit
 }

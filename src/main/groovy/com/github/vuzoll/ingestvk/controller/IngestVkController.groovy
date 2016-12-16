@@ -5,6 +5,9 @@ import com.github.vuzoll.ingestvk.domain.VkProfile
 import com.github.vuzoll.ingestvk.service.DataStorageService
 import com.github.vuzoll.ingestvk.service.VkService
 import groovy.util.logging.Slf4j
+import org.joda.time.Period
+import org.joda.time.format.PeriodFormatter
+import org.joda.time.format.PeriodFormatterBuilder
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
@@ -12,13 +15,17 @@ import org.springframework.web.bind.annotation.RequestMethod
 import org.springframework.web.bind.annotation.ResponseBody
 import org.springframework.web.bind.annotation.RestController
 
-import java.util.concurrent.TimeUnit
-
 @RestController
 @Slf4j
 class IngestVkController {
 
     static Integer DEFAULT_SEED_ID = Integer.parseInt(System.getenv('INGEST_VK_DEFAULT_SEED_ID') ?: '3542756')
+
+    static final PeriodFormatter TIME_LIMIT_FORMAT = new PeriodFormatterBuilder()
+            .appendHours().appendSuffix('h')
+            .appendMinutes().appendSuffix('min')
+            .appendSeconds().appendSuffix('sec')
+            .toFormatter()
 
     @Autowired
     VkService vkService
@@ -35,51 +42,51 @@ class IngestVkController {
         int ingestedCount = 0
         Set<Integer> ids = []
 
-        String message = null
+        String message
 
-        try {
-            log.info 'Reading already ingested data...'
-            ids = dataStorageService.readAllIds()
-            if (ids.empty) {
-                Integer seedId = ingestRequest.seedId ?: DEFAULT_SEED_ID
-                log.warn "There is no ingested data so far. Will use id:$seedId as seed profile"
+        log.info 'Reading already ingested data...'
+        ids = dataStorageService.readAllIds()
+        if (ids.empty) {
+            Integer seedId = ingestRequest.seedId ?: DEFAULT_SEED_ID
+            log.warn "There is no ingested data so far. Will use id:$seedId as seed profile"
 
-                VkProfile seed = vkService.ingestVkUserById(seedId)
-                dataStorageService.insertProfile(seed)
-                ingestedCount++
-                ids.add(seedId)
+            VkProfile seed = vkService.ingestVkUserById(seedId)
+            dataStorageService.insertProfile(seed)
+            ingestedCount++
+            ids.add(seedId)
+        }
+
+        while (true) {
+            log.info "Handling position $index / ${ids.size()} in ingestion queue"
+            log.info "Ingestion already has taken ${toDurationString(System.currentTimeMillis() - startTime)}"
+            log.info "Current dataset size: ${ids.size()} records"
+            log.info "Already ingested: ${ingestedCount} records"
+
+            if (index >= ids.size()) {
+                message = 'Ingestion queue is empty'
+                log.info message
+                break
             }
 
-            while (true) {
-                log.info "Handling position $index / ${ids.size()} in ingestion queue"
-                log.info "Ingestion already has taken ${TimeUnit.SECONDS.convert(System.currentTimeMillis() - startTime, TimeUnit.MILLISECONDS)} sec"
-                log.info "Current dataset size: ${ids.size()} records"
-                log.info "Already ingested: ${ingestedCount} records"
+            if (ingestRequest.timeLimit != null && System.currentTimeMillis() >= startTime + fromDurationString(ingestRequest.timeLimit)) {
+                message = 'Time limit is reached'
+                log.info message
+                break
+            }
 
-                if (index >= ids.size()) {
-                    message = 'Ingestion queue is empty'
-                    log.info message
-                    break
-                }
+            if (ingestRequest.dataSizeLimit != null && ids.size() >= ingestRequest.dataSizeLimit) {
+                message = 'Dataset size limit is reached'
+                log.info message
+                break
+            }
 
-                if (ingestRequest.timeLimit != null && System.currentTimeMillis() >= startTime + TimeUnit.SECONDS.toMillis(ingestRequest.timeLimit)) {
-                    message = 'Time limit is reached'
-                    log.info message
-                    break
-                }
+            if (ingestRequest.ingestedLimit != null && ingestedCount >= ingestRequest.ingestedLimit) {
+                message = 'Ingested records limit is reached'
+                log.info message
+                break
+            }
 
-                if (ingestRequest.dataSizeLimit != null && ids.size() >= ingestRequest.dataSizeLimit) {
-                    message = 'Dataset size limit is reached'
-                    log.info message
-                    break
-                }
-
-                if (ingestRequest.ingestedLimit != null && ingestedCount >= ingestRequest.ingestedLimit) {
-                    message = 'Ingested records limit is reached'
-                    log.info message
-                    break
-                }
-
+            try {
                 List<Integer> friendsIds = vkService.getFriendsIds(ids[index])
                 friendsIds.findAll({
                     !ids.contains(it)
@@ -92,13 +99,13 @@ class IngestVkController {
                 })
 
                 index++
+            } catch (e) {
+                message = "Error while ingesting data: ${e.message}"
+                log.error(message, e)
             }
-        } catch (e) {
-            message = "Error while ingesting data: ${e.message}"
-            log.error(message, e)        
-        } finally {
-            return new IngestResponse(timeTaken: TimeUnit.SECONDS.convert(System.currentTimeMillis() - startTime, TimeUnit.MILLISECONDS), recordsIngested: ingestedCount, recordsCount: ids.size(), message: message)
         }
+
+        return new IngestResponse(timeTaken: toDurationString(System.currentTimeMillis() - startTime), recordsIngested: ingestedCount, recordsCount: ids.size(), message: message)
     }
 
     @RequestMapping(path = '/ingest/search', method = RequestMethod.POST)
@@ -109,46 +116,40 @@ class IngestVkController {
         int ingestedCount = 0
         Set<Integer> ids = []
 
-        String message = null
+        String message
 
-        try {
-            log.info 'Reading already ingested data...'
-            ids = dataStorageService.readAllIds()
+        log.info 'Reading already ingested data...'
+        ids = dataStorageService.readAllIds()
 
-            Country ukraine = vkService.getCountry(2)
-            int batchSize = 1000
-            int offset = 0
+        Country ukraine = vkService.getCountry(2)
+        int batchSize = 1000
+        int offset = 0
 
-            while (true) {
-                log.info "Ingestion already has taken ${TimeUnit.SECONDS.convert(System.currentTimeMillis() - startTime, TimeUnit.MILLISECONDS)} sec"
-                log.info "Current dataset size: ${ids.size()} records"
-                log.info "Already ingested: ${ingestedCount} records"
+        while (true) {
+            log.info "Ingestion already has taken ${toDurationString(System.currentTimeMillis() - startTime)}"
+            log.info "Current dataset size: ${ids.size()} records"
+            log.info "Already ingested: ${ingestedCount} records"
 
-                if (ingestRequest.timeLimit != null && System.currentTimeMillis() >= startTime + TimeUnit.SECONDS.toMillis(ingestRequest.timeLimit)) {
-                    message = 'Time limit is reached'
-                    log.info message
-                    break
-                }
+            if (ingestRequest.timeLimit != null && System.currentTimeMillis() >= startTime + fromDurationString(ingestRequest.timeLimit)) {
+                message = 'Time limit is reached'
+                log.info message
+                break
+            }
 
-                if (ingestRequest.dataSizeLimit != null && ids.size() >= ingestRequest.dataSizeLimit) {
-                    message = 'Dataset size limit is reached'
-                    log.info message
-                    break
-                }
+            if (ingestRequest.dataSizeLimit != null && ids.size() >= ingestRequest.dataSizeLimit) {
+                message = 'Dataset size limit is reached'
+                log.info message
+                break
+            }
 
-                if (ingestRequest.ingestedLimit != null && ingestedCount >= ingestRequest.ingestedLimit) {
-                    message = 'Ingested records limit is reached'
-                    log.info message
-                    break
-                }
+            if (ingestRequest.ingestedLimit != null && ingestedCount >= ingestRequest.ingestedLimit) {
+                message = 'Ingested records limit is reached'
+                log.info message
+                break
+            }
 
+            try {
                 Collection<Integer> newProfileIds = vkService.searchStudentIdsFromCountry(ukraine, offset, batchSize)
-
-                if (newProfileIds.empty) {
-                    message = 'No new records gotten from VK API'
-                    log.info message
-                    break
-                }
 
                 newProfileIds.findAll({
                     !ids.contains(it)
@@ -161,12 +162,25 @@ class IngestVkController {
                 })
 
                 offset += batchSize
+                int countStudentsFromUkraine = vkService.countStudentsFromCountry(ukraine)
+                if (offset >= countStudentsFromUkraine) {
+                    log.warn "Exceeded count of students from Ukraine reported from VK API: ${countStudentsFromUkraine}, returning to the start of the list"
+                    offset = 0
+                }
+            } catch (e) {
+                message = "Error while ingesting data: ${e.message}"
+                log.error(message, e)
             }
-        } catch (e) {
-            message = "Error while ingesting data: ${e.message}"
-            log.error(message, e)
-        } finally {
-            return new IngestResponse(timeTaken: TimeUnit.SECONDS.convert(System.currentTimeMillis() - startTime, TimeUnit.MILLISECONDS), recordsIngested: ingestedCount, recordsCount: ids.size(), message: message)
         }
+
+        return new IngestResponse(timeTaken: toDurationString(System.currentTimeMillis() - startTime), recordsIngested: ingestedCount, recordsCount: ids.size(), message: message)
+    }
+
+    static long fromDurationString(String durationAsString) {
+        TIME_LIMIT_FORMAT.parsePeriod(durationAsString).toStandardDuration().getStandardSeconds() * 1000
+    }
+
+    static String toDurationString(long duration) {
+        TIME_LIMIT_FORMAT.print(new Period(duration))
     }
 }
