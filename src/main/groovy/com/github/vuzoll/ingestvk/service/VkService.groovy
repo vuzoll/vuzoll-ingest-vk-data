@@ -55,11 +55,15 @@ class VkService {
         log.debug "Loading $count ids of students from country id:$country.vkId starting from index $offset..."
         Thread.sleep(VK_API_REQUEST_DELAY)
 
-        vk.users().search(new UserActor(VK_USER_ID, VK_ACCESS_TOKEN))
+        def response = vk.users().search(new UserActor(VK_USER_ID, VK_ACCESS_TOKEN))
                 .universityCountry(country.vkId)
                 .offset(offset)
                 .count(count)
-                .execute().items.collect({ it.id })
+                .execute()
+
+        log.debug "Total number of students from country id:$country.vkId is $response.count"
+
+        return response.items.collect({ it.id })
     }
 
     private VkProfile toVkProfile(UserFull vkApiUser) {

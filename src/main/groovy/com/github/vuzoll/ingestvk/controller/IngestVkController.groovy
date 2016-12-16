@@ -143,6 +143,13 @@ class IngestVkController {
                 }
 
                 Collection<Integer> newProfileIds = vkService.searchStudentIdsFromCountry(ukraine, offset, batchSize)
+
+                if (newProfileIds.empty) {
+                    message = 'No new records gotten from VK API'
+                    log.info message
+                    break
+                }
+
                 newProfileIds.findAll({
                     !ids.contains(it)
                 }).each({
