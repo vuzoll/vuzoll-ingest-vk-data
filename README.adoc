@@ -15,9 +15,10 @@ mkdir /logs
 
 docker ps # to determine if container is already running
 docker kill $CONTAINER_ID # if needed
+docker rm vuzoll_ingest_vk_data # if needed
 
 docker pull vuzoll/vuzoll-ingest-vk-data:$TAG # to load specific image
-docker run -dit -v /data:/data -v /logs:/logs -p 8080:8080 vuzoll/vuzoll-ingest-vk-data:$TAG # to start specific image
+docker run -dit --name vuzoll_ingest_vk_data -v /data:/data -v /logs:/logs -p 8080:8080 vuzoll/vuzoll-ingest-vk-data:$TAG # to start specific image
 ----
 
 If you want to authorize your VK API access to be able to ingest secured data do the following:
@@ -29,7 +30,7 @@ If you want to authorize your VK API access to be able to ingest secured data do
 
 [source,shell]
 ----
-docker run -dit -v /data:/data -v /logs:/logs -e INGEST_VK_ACCESS_TOKEN=ACCESS_ID -e INGEST_VK_USER_ID=USER_ID -p 8080:8080 vuzoll/vuzoll-ingest-vk-data:$TAG
+docker run -dit --name vuzoll_ingest_vk_data -v /data:/data -v /logs:/logs -e INGEST_VK_ACCESS_TOKEN=ACCESS_ID -e INGEST_VK_USER_ID=USER_ID -p 8080:8080 vuzoll/vuzoll-ingest-vk-data:$TAG
 ----
 
 == HOWTO: run service
