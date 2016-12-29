@@ -44,7 +44,15 @@ class VkService {
 
         UserFull vkApiUser = vkRequest
                 .userIds(id.toString())
-                .fields(UserField.CITY, UserField.COUNTRY, UserField.EDUCATION, UserField.UNIVERSITIES)
+                .fields(
+                    UserField.ABOUT,     UserField.ACTIVITIES,   UserField.BDATE,       UserField.BOOKS,
+                    UserField.CAREER,    UserField.CITY,         UserField.CONNECTIONS, UserField.COUNTRY,
+                    UserField.DOMAIN,    UserField.EDUCATION,    UserField.GAMES,       UserField.HOME_TOWN,
+                    UserField.INTERESTS, UserField.LAST_SEEN,    UserField.MILITARY,    UserField.MOVIES,
+                    UserField.MUSIC,     UserField.OCCUPATION,   UserField.PERSONAL,    UserField.QUOTES,
+                    UserField.RELATIVES, UserField.RELATION,     UserField.SCHOOLS,     UserField.SEX,
+                    UserField.TV,        UserField.UNIVERSITIES, UserField.VERIFIED
+                )
                 .lang(Lang.UA)
                 .execute().get(0)
 
