@@ -1,6 +1,5 @@
 package com.github.vuzoll.ingestvk.controller
 
-import com.github.vuzoll.ingestvk.domain.Country
 import com.github.vuzoll.ingestvk.domain.VkProfile
 import com.github.vuzoll.ingestvk.service.DataStorageService
 import com.github.vuzoll.ingestvk.service.VkService
@@ -50,7 +49,7 @@ class IngestVkController {
             Integer seedId = ingestRequest.seedId ?: DEFAULT_SEED_ID
             log.warn "There is no ingested data so far. Will use id:$seedId as seed profile"
 
-            VkProfile seed = vkService.ingestVkUserById(seedId)
+            VkProfile seed = vkService.ingestVkProfileById(seedId)
             dataStorageService.insertProfile(seed)
             ingestedCount++
             ids.add(seedId)
@@ -93,7 +92,7 @@ class IngestVkController {
                 }).each({
                     log.debug "Found new profile id:$it"
                     ids.add it
-                    VkProfile newProfile = vkService.ingestVkUserById(it)
+                    VkProfile newProfile = vkService.ingestVkProfileById(it)
                     dataStorageService.insertProfile(newProfile)
                     ingestedCount++
                 })
