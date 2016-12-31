@@ -5,7 +5,7 @@ import groovy.transform.EqualsAndHashCode
 @EqualsAndHashCode
 class VkSchoolRecord {
 
-    Integer vkId
+    String vkId
     Integer countryId
     Integer cityId
     String name

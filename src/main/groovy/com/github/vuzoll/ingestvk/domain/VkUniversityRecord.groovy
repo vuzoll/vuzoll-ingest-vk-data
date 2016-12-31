@@ -1,9 +1,8 @@
 package com.github.vuzoll.ingestvk.domain
 
-import com.vk.api.sdk.objects.users.UserXtrCounters
 import groovy.transform.EqualsAndHashCode
 
-@EqualsAndHashCode
+@EqualsAndHashCode(includes = [ 'universityId', 'facultyId', 'graduationYear' ])
 class VkUniversityRecord {
 
     Integer universityId

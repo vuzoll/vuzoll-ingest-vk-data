@@ -74,6 +74,7 @@ class VkService {
         vkProfile.vkId = vkApiUser.id
         vkProfile.vkDomain = vkApiUser.domain
         vkProfile.vkLastSeen = vkApiUser.lastSeen.time
+        vkProfile.vkActivationStatus = vkApiUser.deactivated
 
         vkProfile.friendsIds = getFriendsIds(vkApiUser.id)
 
@@ -87,9 +88,17 @@ class VkService {
 
         vkProfile.occupation = toVkOccupation(vkApiUser.occupation)
         vkProfile.careerRecords = vkApiUser.career?.collect(this.&toVkCareerRecord) ?: []
-        vkProfile.universityRecords = vkApiUser.universities?.collect(this.&toVkUnivesityRecord) ?: []
+        vkProfile.universityRecords = (vkApiUser.universities?.collect(this.&toVkUnivesityRecord) ?: []) + toVkUnivesityRecord(vkApiUser)
         vkProfile.militaryRecords = vkApiUser.military?.collect(this.&toVkMilitaryRecord) ?: []
         vkProfile.schoolRecords = vkApiUser.schools?.collect(this.&toVkSchoolRecord) ?: []
+
+        vkProfile.skypeLogin = vkApiUser.skype
+        vkProfile.facebookId = vkApiUser.facebook
+        vkProfile.facebookName = vkApiUser.facebookName
+        vkProfile.twitterId = vkApiUser.twitter
+        vkProfile.livejournalId = vkApiUser.livejournal
+        vkProfile.instagramId = vkApiUser.instagram
+        vkProfile.verified = vkApiUser.verified
 
         vkProfile.about = vkApiUser.about
         vkProfile.activities = vkApiUser.activities
@@ -107,14 +116,14 @@ class VkService {
         return vkProfile
     }
 
-    private VkCareerRecord toVkCareerRecord(Career career) {
+    private VkCareerRecord toVkCareerRecord(Career vkApiCareer) {
         VkCareerRecord vkCareerRecord = new VkCareerRecord()
-        vkCareerRecord.groupId = career.groupId
-        vkCareerRecord.countryId = career.countryId
-        vkCareerRecord.cityId = career.cityId
-        vkCareerRecord.from = career.from
-        vkCareerRecord.until = career.until
-        vkCareerRecord.position = career.position
+        vkCareerRecord.groupId = vkApiCareer.groupId
+        vkCareerRecord.countryId = vkApiCareer.countryId
+        vkCareerRecord.cityId = vkApiCareer.cityId
+        vkCareerRecord.from = vkApiCareer.from
+        vkCareerRecord.until = vkApiCareer.until
+        vkCareerRecord.position = vkApiCareer.position
 
         return vkCareerRecord
     }
@@ -149,7 +158,20 @@ class VkService {
         vkUniversityRecord.educationForm = vkApiUniversity.educationForm
         vkUniversityRecord.educationStatus = vkApiUniversity.educationStatus
 
-        return vkApiUniversity
+        return vkUniversityRecord
+    }
+
+    private VkUniversityRecord toVkUnivesityRecord(UserFull vkApiUser) {
+        VkUniversityRecord vkUniversityRecord = new VkUniversityRecord()
+        vkUniversityRecord.universityId = vkApiUser.university
+        vkUniversityRecord.universityName = vkApiUser.universityName
+        vkUniversityRecord.facultyId = vkApiUser.faculty
+        vkUniversityRecord.facultyName = vkApiUser.facultyName
+        vkUniversityRecord.graduationYear = vkApiUser.graduation
+        vkUniversityRecord.educationForm = vkApiUser.educationForm
+        vkUniversityRecord.educationStatus = vkApiUser.educationStatus
+
+        return vkUniversityRecord
     }
 
     private VkMilitaryRecord toVkMilitaryRecord(Military vkApiMilitary) {
@@ -174,14 +196,14 @@ class VkService {
 
     private VkPersonalBelief toVkPersonalBelief(Personal vkApiPersonal) {
         VkPersonalBelief vkPersonalBelief = new VkPersonalBelief()
-        vkPersonalBelief.politicalBelief = vkApiPersonal.political
-        vkPersonalBelief.languages = vkApiPersonal.langs
-        vkPersonalBelief.religionBelief = vkApiPersonal.religion
-        vkPersonalBelief.inspiredBy = vkApiPersonal.inspiredBy
-        vkPersonalBelief.importantInPeople = vkApiPersonal.peopleMain
-        vkPersonalBelief.importantInLife = vkApiPersonal.lifeMain
-        vkPersonalBelief.smokingAttitude = vkApiPersonal.smoking
-        vkPersonalBelief.alcoholAttitude = vkApiPersonal.alcohol
+        vkPersonalBelief.politicalBelief = vkApiPersonal?.political
+        vkPersonalBelief.languages = vkApiPersonal?.langs ?: []
+        vkPersonalBelief.religionBelief = vkApiPersonal?.religion
+        vkPersonalBelief.inspiredBy = vkApiPersonal?.inspiredBy
+        vkPersonalBelief.importantInPeople = vkApiPersonal?.peopleMain
+        vkPersonalBelief.importantInLife = vkApiPersonal?.lifeMain
+        vkPersonalBelief.smokingAttitude = vkApiPersonal?.smoking
+        vkPersonalBelief.alcoholAttitude = vkApiPersonal?.alcohol
 
         return vkPersonalBelief
     }

@@ -8,8 +8,9 @@ class VkProfile {
     Integer vkId
     String vkDomain
     Integer vkLastSeen
+    String vkActivationStatus
 
-    Collection<Integer> friendsIds
+    Set<Integer> friendsIds
 
     Long ingestedTimestamp
 
@@ -20,10 +21,18 @@ class VkProfile {
     Integer sex
 
     VkOccupation occupation
-    Collection<VkCareerRecord> careerRecords
-    Collection<VkUniversityRecord> universityRecords
-    Collection<VkMilitaryRecord> militaryRecords
-    Collection<VkSchoolRecord> schoolRecords
+    Set<VkCareerRecord> careerRecords
+    Set<VkUniversityRecord> universityRecords
+    Set<VkMilitaryRecord> militaryRecords
+    Set<VkSchoolRecord> schoolRecords
+
+    String skypeLogin
+    String facebookId
+    String facebookName
+    String twitterId
+    String livejournalId
+    String instagramId
+    String verified
 
     String about
     String activities
