@@ -161,7 +161,7 @@ a|информация о карьере пользователя. Объект,
 * position (string) — должность
 |career information
 |yes
-|
+|fields 'company' and 'city_name' are missing in SDK
 |
 
 |city

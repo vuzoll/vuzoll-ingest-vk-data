@@ -1,16 +1,29 @@
 package com.github.vuzoll.ingestvk.service
 
-import com.github.vuzoll.ingestvk.domain.City
-import com.github.vuzoll.ingestvk.domain.Country
-import com.github.vuzoll.ingestvk.domain.EducationRecord
-import com.github.vuzoll.ingestvk.domain.Faculty
-import com.github.vuzoll.ingestvk.domain.University
+import com.github.vuzoll.ingestvk.domain.VkCity
+import com.github.vuzoll.ingestvk.domain.VkCountry
+import com.github.vuzoll.ingestvk.domain.VkSchoolRecord
+import com.github.vuzoll.ingestvk.domain.VkUniversityRecord
+
+import com.github.vuzoll.ingestvk.domain.VkCareerRecord
+import com.github.vuzoll.ingestvk.domain.VkMilitaryRecord
+import com.github.vuzoll.ingestvk.domain.VkOccupation
+import com.github.vuzoll.ingestvk.domain.VkPersonalBelief
 import com.github.vuzoll.ingestvk.domain.VkProfile
+import com.github.vuzoll.ingestvk.domain.VkRelative
 import com.vk.api.sdk.client.Lang
 import com.vk.api.sdk.client.VkApiClient
 import com.vk.api.sdk.client.actors.UserActor
 import com.vk.api.sdk.httpclient.HttpTransportClient
 import com.vk.api.sdk.objects.base.BaseObject
+import com.vk.api.sdk.objects.base.Country
+import com.vk.api.sdk.objects.users.Career
+import com.vk.api.sdk.objects.users.Military
+import com.vk.api.sdk.objects.users.Occupation
+import com.vk.api.sdk.objects.users.Personal
+import com.vk.api.sdk.objects.users.Relative
+import com.vk.api.sdk.objects.users.School
+import com.vk.api.sdk.objects.users.University
 import com.vk.api.sdk.objects.users.UserFull
 import com.vk.api.sdk.queries.users.UserField
 import groovy.transform.Memoized
@@ -26,13 +39,10 @@ class VkService {
 
     static long VK_API_REQUEST_DELAY = 350
 
-    static Map<Integer, City> CITY_CACHE = [:]
-    static Map<Integer, Country> COUNTRY_CACHE = [:]
-
     VkApiClient vk = new VkApiClient(HttpTransportClient.getInstance())
 
-    VkProfile ingestVkUserById(Integer id) {
-        log.debug "Loading profile id:$id..."
+    VkProfile ingestVkProfileById(Integer id) {
+        log.debug "Ingesting vk profile by id=$id..."
         Thread.sleep(VK_API_REQUEST_DELAY)
 
         def vkRequest
@@ -62,16 +72,146 @@ class VkService {
     private VkProfile toVkProfile(UserFull vkApiUser) {
         VkProfile vkProfile = new VkProfile()
         vkProfile.vkId = vkApiUser.id
-        vkProfile.name = "$vkApiUser.firstName $vkApiUser.lastName"
-        vkProfile.city = createCity(vkApiUser.city, vkApiUser.country)
-        vkProfile.country = createCountry(vkApiUser.country)
-        vkProfile.educationRecords = ([ createEducationRecord(vkApiUser) ] + vkApiUser.universities.collect({ createEducationRecord(it) })).findAll { it != null }
+        vkProfile.vkDomain = vkApiUser.domain
+        vkProfile.vkLastSeen = vkApiUser.lastSeen.time
+
+        vkProfile.friendsIds = getFriendsIds(vkApiUser.id)
+
+        vkProfile.ingestedTimestamp = System.currentTimeMillis()
+
+        vkProfile.birthday = vkApiUser.bdate
+        vkProfile.city = toVkCity(vkApiUser.city)
+        vkProfile.country = toVkCountry(vkApiUser.country)
+        vkProfile.homeTown = vkApiUser.homeTown
+        vkProfile.sex = vkApiUser.sex
+
+        vkProfile.occupation = toVkOccupation(vkApiUser.occupation)
+        vkProfile.careerRecords = vkApiUser.career?.collect(this.&toVkCareerRecord) ?: []
+        vkProfile.universityRecords = vkApiUser.universities?.collect(this.&toVkUnivesityRecord) ?: []
+        vkProfile.militaryRecords = vkApiUser.military?.collect(this.&toVkMilitaryRecord) ?: []
+        vkProfile.schoolRecords = vkApiUser.schools?.collect(this.&toVkSchoolRecord) ?: []
+
+        vkProfile.about = vkApiUser.about
+        vkProfile.activities = vkApiUser.activities
+        vkProfile.books = vkApiUser.books
+        vkProfile.games = vkApiUser.games
+        vkProfile.interests = vkApiUser.interests
+        vkProfile.movies = vkApiUser.movies
+        vkProfile.music = vkApiUser.music
+        vkProfile.personalBelief = toVkPersonalBelief(vkApiUser.personal)
+        vkProfile.quotes = vkApiUser.quotes
+        vkProfile.relatives = vkApiUser.relatives?.collect(this.&toVkRelative)
+        vkProfile.relationStatus = vkApiUser.relation
+        vkProfile.tvShows = vkApiUser.tv
 
         return vkProfile
     }
 
-    List<Integer> getFriendsIds(Integer id) {
-        log.debug "Getting friend list of profile id:$id..."
+    private VkCareerRecord toVkCareerRecord(Career career) {
+        VkCareerRecord vkCareerRecord = new VkCareerRecord()
+        vkCareerRecord.groupId = career.groupId
+        vkCareerRecord.countryId = career.countryId
+        vkCareerRecord.cityId = career.cityId
+        vkCareerRecord.from = career.from
+        vkCareerRecord.until = career.until
+        vkCareerRecord.position = career.position
+
+        return vkCareerRecord
+    }
+
+    private VkCity toVkCity(BaseObject vkApiCity) {
+        VkCity vkCity = new VkCity()
+        vkCity.vkId = vkApiCity.id
+        vkCity.name = vkApiCity.title
+
+        return vkCity
+    }
+
+    private VkCountry toVkCountry(Country vkApiCountry) {
+        VkCountry vkCountry = new VkCountry()
+        vkCountry.vkId = vkApiCountry.id
+        vkCountry.name = vkApiCountry.title
+
+        return vkCountry
+    }
+
+    private VkUniversityRecord toVkUnivesityRecord(University vkApiUniversity) {
+        VkUniversityRecord vkUniversityRecord = new VkUniversityRecord()
+        vkUniversityRecord.universityId = vkApiUniversity.id
+        vkUniversityRecord.countryId = vkApiUniversity.country
+        vkUniversityRecord.cityId = vkApiUniversity.city
+        vkUniversityRecord.universityName = vkApiUniversity.name
+        vkUniversityRecord.facultyId = vkApiUniversity.faculty
+        vkUniversityRecord.facultyName = vkApiUniversity.facultyName
+        vkUniversityRecord.chairId = vkApiUniversity.chair
+        vkUniversityRecord.chairName = vkApiUniversity.chairName
+        vkUniversityRecord.graduationYear = vkApiUniversity.graduation
+        vkUniversityRecord.educationForm = vkApiUniversity.educationForm
+        vkUniversityRecord.educationStatus = vkApiUniversity.educationStatus
+
+        return vkApiUniversity
+    }
+
+    private VkMilitaryRecord toVkMilitaryRecord(Military vkApiMilitary) {
+        VkMilitaryRecord vkMilitaryRecord = new VkMilitaryRecord()
+        vkMilitaryRecord.vkId = vkApiMilitary.unitId
+        vkMilitaryRecord.unit = vkApiMilitary.unit
+        vkMilitaryRecord.countryId = vkApiMilitary.countryId
+        vkMilitaryRecord.from = vkApiMilitary.from
+        vkMilitaryRecord.until = vkApiMilitary.until
+
+        return vkMilitaryRecord
+    }
+
+    private VkOccupation toVkOccupation(Occupation vkApiOccupation) {
+        VkOccupation vkOccupation = new VkOccupation()
+        vkOccupation.vkId = vkApiOccupation.id
+        vkOccupation.type = vkApiOccupation.type
+        vkOccupation.name = vkApiOccupation.name
+
+        return vkOccupation
+    }
+
+    private VkPersonalBelief toVkPersonalBelief(Personal vkApiPersonal) {
+        VkPersonalBelief vkPersonalBelief = new VkPersonalBelief()
+        vkPersonalBelief.politicalBelief = vkApiPersonal.political
+        vkPersonalBelief.languages = vkApiPersonal.langs
+        vkPersonalBelief.religionBelief = vkApiPersonal.religion
+        vkPersonalBelief.inspiredBy = vkApiPersonal.inspiredBy
+        vkPersonalBelief.importantInPeople = vkApiPersonal.peopleMain
+        vkPersonalBelief.importantInLife = vkApiPersonal.lifeMain
+        vkPersonalBelief.smokingAttitude = vkApiPersonal.smoking
+        vkPersonalBelief.alcoholAttitude = vkApiPersonal.alcohol
+
+        return vkPersonalBelief
+    }
+
+    private VkRelative toVkRelative(Relative vkApiRelative) {
+        VkRelative vkRelative = new VkRelative()
+        vkRelative.vkId = vkApiRelative.id
+        vkRelative.type = vkApiRelative.type
+
+        return vkRelative
+    }
+
+    private VkSchoolRecord toVkSchoolRecord(School vkApiSchool) {
+        VkSchoolRecord vkSchoolRecord = new VkSchoolRecord()
+        vkSchoolRecord.vkId = vkApiSchool.id
+        vkSchoolRecord.countryId = vkApiSchool.country
+        vkSchoolRecord.cityId = vkApiSchool.city
+        vkSchoolRecord.name = vkApiSchool.name
+        vkSchoolRecord.yearFrom = vkApiSchool.yearFrom
+        vkSchoolRecord.yearTo = vkApiSchool.yearTo
+        vkSchoolRecord.graduationYear = vkApiSchool.yearGraduated
+        vkSchoolRecord.classLetter = vkApiSchool.className
+        vkSchoolRecord.typeId = vkApiSchool.type
+        vkSchoolRecord.typeName = vkApiSchool.typeStr
+
+        return vkSchoolRecord
+    }
+
+    Collection<Integer> getFriendsIds(Integer id) {
+        log.debug "Getting friend list of profile id=$id..."
         Thread.sleep(VK_API_REQUEST_DELAY)
 
         try {
@@ -90,144 +230,5 @@ class VkService {
             log.warn("Failed to get friend list of profile id:$id", e)
             return []
         }
-    }
-
-    City createCity(BaseObject vkApiCity, com.vk.api.sdk.objects.base.Country vkApiCountry) {
-        if (vkApiCity) {
-            if (CITY_CACHE.containsKey(vkApiCity.id)) {
-                return CITY_CACHE[vkApiCity.id]
-            } else {
-                City newInstance = new City(vkId: vkApiCity.id, name: vkApiCity.title, country: createCountry(vkApiCountry))
-                CITY_CACHE[vkApiCity.id] = newInstance
-                return newInstance
-            }
-        } else {
-            return null
-        }
-    }
-
-    Country createCountry(com.vk.api.sdk.objects.base.Country vkApiCountry) {
-        if (vkApiCountry) {
-            if (COUNTRY_CACHE.containsKey(vkApiCountry.id)) {
-                return COUNTRY_CACHE[vkApiCountry.id]
-            } else {
-                Country newInstance = new Country(vkId: vkApiCountry.id, name: vkApiCountry.title)
-                COUNTRY_CACHE[vkApiCountry.id] = newInstance
-                return newInstance
-            }
-        } else {
-            return null
-        }
-    }
-
-    EducationRecord createEducationRecord(UserFull vkApiUser) {
-        if (vkApiUser.university || vkApiUser.faculty) {
-            new EducationRecord(university: getUniversity(vkApiUser.university, vkApiUser.universityName), faculty: getFaculty(vkApiUser.faculty, vkApiUser.facultyName, vkApiUser.university, vkApiUser.universityName), graduationYear: vkApiUser.graduation)
-        } else {
-            null
-        }
-    }
-
-    EducationRecord createEducationRecord(com.vk.api.sdk.objects.users.University university) {
-        if (university.id || university.faculty) {
-            new EducationRecord(university: getUniversity(university.id, university.name), faculty: getFaculty(university.faculty, university.facultyName, university.id, university.name), graduationYear: university.graduation)
-        } else {
-            null
-        }
-    }
-
-    @Memoized
-    Faculty getFaculty(Integer vkId, String name, Integer universityVkId, String universityName) {
-        if (vkId) {
-            return new Faculty(vkId: vkId, name: name, university: getUniversity(universityVkId, universityName))
-        } else {
-            null
-        }
-    }
-
-    @Memoized
-    University getUniversity(Integer vkId, String name) {
-        if (vkId) {
-            Country universityCounty = guessUniversityCounty(vkId, name)
-            City universityCity = guessUniversityCity(vkId, name, universityCounty)
-            return new University(vkId: vkId, name: name, city: universityCity, country: universityCounty)
-        } else {
-            null
-        }
-    }
-
-    @Memoized
-    Country guessUniversityCounty(Integer universityId, String universityName) {
-        if (isUniversityInCountry(universityId, universityName, 2)) {
-            return getCountry(2)
-        } else {
-            return null
-        }
-    }
-
-    @Memoized
-    Country getCountry(Integer id) {
-        log.debug "Getting country with id:$id..."
-        Thread.sleep(VK_API_REQUEST_DELAY)
-
-        return createCountry(vk.database().countriesById.countryIds(id).execute()[0])
-    }
-
-    @Memoized
-    boolean isUniversityInCountry(Integer universityId, String universityName, Integer countryId) {
-        log.debug "Checking if university id:$universityId is located in country id:$countryId"
-        Thread.sleep(VK_API_REQUEST_DELAY)
-
-        try {
-            String query = universityName.contains(' ') ? universityName.substring(0, universityName.indexOf(' ')) : universityName
-            return vk.database().universities.countryId(countryId).lang(Lang.UA).q(query).execute().items.find({ it.id == universityId }) != null
-        } catch (e) {
-            log.warn("Failed checking if university id:$universityId is located in country id:$countryId", e)
-            return false
-        }
-    }
-
-    @Memoized
-    City guessUniversityCity(Integer universityId, String universityName, Country country) {
-        if (country) {
-            Integer cityId = streamCitiesIdByCountry(country.vkId, 1000, 0).find({ isUniversityInCity(universityId, universityName, it) })
-            if (cityId) {
-                return getCity(cityId, country.vkId)
-            } else {
-                return null
-            }
-        } else {
-            return null
-        }
-    }
-
-    @Memoized
-    City getCity(Integer cityId, Integer countryId) {
-        log.debug "Getting city with id:$cityId..."
-        Thread.sleep(2 * VK_API_REQUEST_DELAY)
-
-        return createCity(vk.database().citiesById.cityIds(cityId).execute()[0], vk.database().countriesById.countryIds(countryId).execute()[0])
-    }
-
-    @Memoized
-    boolean isUniversityInCity(Integer universityId, String universityName, Integer cityId) {
-        log.debug "Checking if university id:$universityId is located in city id:$cityId"
-        Thread.sleep(VK_API_REQUEST_DELAY)
-
-        try {
-            String query = universityName.contains(' ') ? universityName.substring(0, universityName.indexOf(' ')) : universityName
-            return vk.database().universities.cityId(cityId).lang(Lang.UA).q(query).execute().items.find({ it.id == universityId }) != null
-        } catch (e) {
-            log.warn("Failed checking if university id:$universityId is located in city id:$cityId", e)
-            return false
-        }
-    }
-
-    @Memoized
-    List<Integer> streamCitiesIdByCountry(Integer countryId, Integer batchSize, Integer offset) {
-        log.debug "Streaming $batchSize of cities (starting from $offset) located in country with id:$countryId..."
-        Thread.sleep(VK_API_REQUEST_DELAY)
-
-        return vk.database().getCities(countryId).count(batchSize).offset(offset).execute().items.id
     }
 }

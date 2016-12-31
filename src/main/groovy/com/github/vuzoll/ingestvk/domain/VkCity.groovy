@@ -3,9 +3,8 @@ package com.github.vuzoll.ingestvk.domain
 import groovy.transform.EqualsAndHashCode
 
 @EqualsAndHashCode(includes = 'vkId')
-class City {
+class VkCity {
 
     Integer vkId
     String name
-    Country country
 }
