@@ -8,7 +8,7 @@ class VkProfile {
     Integer vkId
     String vkDomain
     Integer vkLastSeen
-    String vkActivationStatus
+    Boolean vkActive
 
     Set<Integer> friendsIds
 
@@ -43,7 +43,7 @@ class VkProfile {
     String music
     VkPersonalBelief personalBelief
     String quotes
-    Collection<VkRelative> relatives
+    Set<VkRelative> relatives
     Integer relationStatus
     String tvShows
 }

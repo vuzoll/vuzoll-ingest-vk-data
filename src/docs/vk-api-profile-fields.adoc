@@ -1,9 +1,9 @@
-= Vk profile fields
+= vk api profile fields
 
 == Fields description
 
 |===
-|Original name |Type |Original description |Type |Ingest? |Comments |Example
+|Original name |Data type |Original description |Semantic type |Ingest? |Comments |Example
 
 |id
 |integer
@@ -33,7 +33,7 @@
 |string
 |поле возвращается, если страница пользователя удалена или заблокирована, содержит значение deleted или banned. В этом случае дополнительные поля fields не возвращаются
 |vk specific
-|no (basic)
+|yes (basic)
 |
 |
 

@@ -74,7 +74,7 @@ class VkService {
         vkProfile.vkId = vkApiUser.id
         vkProfile.vkDomain = vkApiUser.domain
         vkProfile.vkLastSeen = vkApiUser.lastSeen.time
-        vkProfile.vkActivationStatus = vkApiUser.deactivated
+        vkProfile.vkActive = vkApiUser.deactivated != null
 
         vkProfile.friendsIds = getFriendsIds(vkApiUser.id)
 
