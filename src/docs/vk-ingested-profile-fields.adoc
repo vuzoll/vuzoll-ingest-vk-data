@@ -3,7 +3,7 @@
 == Fields description
 
 |===
-|Name |Class |Description |Type |Comments |Example
+|Name |Class |Type |Description |Comments |Example
 
 |vkId
 |Integer
@@ -28,6 +28,76 @@
 
 |vkActive
 |Boolean
+|
+|
+|
+|
+
+|firstName
+|String
+|
+|
+|
+|
+
+|lastName
+|String
+|
+|
+|
+|
+
+|maidenName
+|String
+|
+|
+|
+|
+
+|nickname
+|String
+|
+|
+|
+|
+
+|relationPartner
+|VkRelationPartner
+|
+|
+|
+|
+
+|screenName
+|String
+|
+|
+|
+|
+
+|site
+|String
+|
+|
+|
+|
+
+|timezone
+|Integer
+|
+|
+|
+|
+
+|mobilePhone
+|String
+|
+|
+|
+|
+
+|homePhone
+|String
 |
 |
 |

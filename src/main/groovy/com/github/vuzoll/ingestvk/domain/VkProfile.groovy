@@ -10,6 +10,15 @@ class VkProfile {
     Integer vkLastSeen
     Boolean vkActive
 
+    String firstName
+    String lastName
+    String maidenName
+    String nickname
+    String mobilePhone
+    String homePhone
+    VkRelationPartner relationPartner
+    Integer timezone
+
     Set<Integer> friendsIds
 
     Long ingestedTimestamp
@@ -33,6 +42,8 @@ class VkProfile {
     String livejournalId
     String instagramId
     String verified
+    String screenName
+    String site
 
     String about
     String activities
