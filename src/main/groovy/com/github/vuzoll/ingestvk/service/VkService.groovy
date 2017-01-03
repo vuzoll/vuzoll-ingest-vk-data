@@ -28,6 +28,7 @@ import com.vk.api.sdk.objects.users.University
 import com.vk.api.sdk.objects.users.UserFull
 import com.vk.api.sdk.objects.users.UserMin
 import com.vk.api.sdk.queries.users.UserField
+import groovy.json.JsonOutput
 import groovy.util.logging.Slf4j
 import org.springframework.stereotype.Service
 
@@ -56,13 +57,14 @@ class VkService {
         UserFull vkApiUser = vkRequest
                 .userIds(id.toString())
                 .fields(
-                    UserField.ABOUT,     UserField.ACTIVITIES,   UserField.BDATE,       UserField.BOOKS,
-                    UserField.CAREER,    UserField.CITY,         UserField.CONNECTIONS, UserField.COUNTRY,
-                    UserField.DOMAIN,    UserField.EDUCATION,    UserField.GAMES,       UserField.HOME_TOWN,
-                    UserField.INTERESTS, UserField.LAST_SEEN,    UserField.MILITARY,    UserField.MOVIES,
-                    UserField.MUSIC,     UserField.OCCUPATION,   UserField.PERSONAL,    UserField.QUOTES,
-                    UserField.RELATIVES, UserField.RELATION,     UserField.SCHOOLS,     UserField.SEX,
-                    UserField.TV,        UserField.UNIVERSITIES, UserField.VERIFIED
+                    UserField.ABOUT,     UserField.ACTIVITIES, UserField.BDATE,       UserField.BOOKS,
+                    UserField.CAREER,    UserField.CITY,       UserField.CONNECTIONS, UserField.CONTACTS,
+                    UserField.COUNTRY,   UserField.DOMAIN,     UserField.EDUCATION,   UserField.GAMES,
+                    UserField.HOME_TOWN, UserField.INTERESTS,  UserField.LAST_SEEN,   UserField.MILITARY,
+                    UserField.MOVIES,    UserField.MUSIC,      UserField.OCCUPATION,  UserField.PERSONAL,
+                    UserField.QUOTES,    UserField.RELATIVES,  UserField.RELATION,    UserField.SCHOOLS,
+                    UserField.SEX,       UserField.TV,         UserField.TIMEZONE,    UserField.UNIVERSITIES,
+                    UserField.VERIFIED
                 )
                 .lang(Lang.UA)
                 .execute().get(0)
@@ -100,7 +102,7 @@ class VkService {
 
         vkProfile.occupation = toVkOccupation(vkApiUser.occupation)
         vkProfile.careerRecords = vkApiUser.career?.collect(this.&toVkCareerRecord) ?: []
-        vkProfile.universityRecords = (vkApiUser.universities?.collect(this.&toVkUnivesityRecord) ?: []) + toVkUniversityRecord(vkApiUser)
+        vkProfile.universityRecords = (vkApiUser.universities?.collect(this.&toVkUniversityRecord) ?: []) + toVkUniversityRecord(vkApiUser)
         vkProfile.militaryRecords = vkApiUser.military?.collect(this.&toVkMilitaryRecord) ?: []
         vkProfile.schoolRecords = vkApiUser.schools?.collect(this.&toVkSchoolRecord) ?: []
 
@@ -245,6 +247,10 @@ class VkService {
     }
 
     private VkRelationPartner toVkRelationPartner(UserMin vkApiRelationPartner) {
+        if (!vkApiRelationPartner) {
+            return null
+        }
+
         VkRelationPartner vkRelationPartner = new VkRelationPartner()
         vkRelationPartner.vkId = vkApiRelationPartner.id
         vkRelationPartner.firstName = vkApiRelationPartner.firstName
