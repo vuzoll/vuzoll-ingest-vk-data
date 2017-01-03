@@ -2,6 +2,7 @@ package com.github.vuzoll.ingestvk.service
 
 import com.github.vuzoll.ingestvk.domain.VkCity
 import com.github.vuzoll.ingestvk.domain.VkCountry
+import com.github.vuzoll.ingestvk.domain.VkRelationPartner
 import com.github.vuzoll.ingestvk.domain.VkSchoolRecord
 import com.github.vuzoll.ingestvk.domain.VkUniversityRecord
 
@@ -25,8 +26,8 @@ import com.vk.api.sdk.objects.users.Relative
 import com.vk.api.sdk.objects.users.School
 import com.vk.api.sdk.objects.users.University
 import com.vk.api.sdk.objects.users.UserFull
+import com.vk.api.sdk.objects.users.UserMin
 import com.vk.api.sdk.queries.users.UserField
-import groovy.transform.Memoized
 import groovy.util.logging.Slf4j
 import org.springframework.stereotype.Service
 
@@ -55,13 +56,13 @@ class VkService {
         UserFull vkApiUser = vkRequest
                 .userIds(id.toString())
                 .fields(
-                    UserField.ABOUT,     UserField.ACTIVITIES,   UserField.BDATE,       UserField.BOOKS,
-                    UserField.CAREER,    UserField.CITY,         UserField.CONNECTIONS, UserField.COUNTRY,
-                    UserField.DOMAIN,    UserField.EDUCATION,    UserField.GAMES,       UserField.HOME_TOWN,
-                    UserField.INTERESTS, UserField.LAST_SEEN,    UserField.MILITARY,    UserField.MOVIES,
-                    UserField.MUSIC,     UserField.OCCUPATION,   UserField.PERSONAL,    UserField.QUOTES,
-                    UserField.RELATIVES, UserField.RELATION,     UserField.SCHOOLS,     UserField.SEX,
-                    UserField.TV,        UserField.UNIVERSITIES, UserField.VERIFIED
+                    UserField.ABOUT,     UserField.ACTIVITIES, UserField.BDATE,        UserField.BOOKS,
+                    UserField.CAREER,    UserField.CITY,       UserField.CONNECTIONS,  UserField.CONTACTS,
+                    UserField.COUNTRY,   UserField.DOMAIN,     UserField.EDUCATION,    UserField.GAMES,
+                    UserField.HOME_TOWN, UserField.INTERESTS,  UserField.LAST_SEEN,    UserField.MILITARY,
+                    UserField.MOVIES,    UserField.MUSIC,      UserField.OCCUPATION,   UserField.PERSONAL,
+                    UserField.QUOTES,    UserField.RELATIVES,  UserField.RELATION,     UserField.SCHOOLS,
+                    UserField.SEX,       UserField.TV,         UserField.UNIVERSITIES, UserField.VERIFIED
                 )
                 .lang(Lang.UA)
                 .execute().get(0)
@@ -74,7 +75,17 @@ class VkService {
         vkProfile.vkId = vkApiUser.id
         vkProfile.vkDomain = vkApiUser.domain
         vkProfile.vkLastSeen = vkApiUser.lastSeen.time
-        vkProfile.vkActive = vkApiUser.deactivated != null
+        vkProfile.vkActive = (vkApiUser.deactivated == null)
+
+        vkProfile.firstName = vkApiUser.firstName
+        vkProfile.lastName = vkApiUser.lastName
+        vkProfile.maidenName = vkApiUser.maidenName
+        vkProfile.middleName = vkApiUser.nickname
+        vkProfile.mobilePhone = vkApiUser.mobilePhone
+        vkProfile.homePhone = vkApiUser.homePhone
+        vkProfile.relationPartner = toVkRelationPartner(vkApiUser.relationPartner)
+        vkProfile.screenName = vkApiUser.screenName
+        vkProfile.site = vkApiUser.site
 
         vkProfile.friendsIds = getFriendsIds(vkApiUser.id)
 
@@ -88,7 +99,7 @@ class VkService {
 
         vkProfile.occupation = toVkOccupation(vkApiUser.occupation)
         vkProfile.careerRecords = vkApiUser.career?.collect(this.&toVkCareerRecord) ?: []
-        vkProfile.universityRecords = (vkApiUser.universities?.collect(this.&toVkUnivesityRecord) ?: []) + toVkUnivesityRecord(vkApiUser)
+        vkProfile.universityRecords = (vkApiUser.universities?.collect(this.&toVkUniversityRecord) ?: []) + toVkUniversityRecord(vkApiUser)
         vkProfile.militaryRecords = vkApiUser.military?.collect(this.&toVkMilitaryRecord) ?: []
         vkProfile.schoolRecords = vkApiUser.schools?.collect(this.&toVkSchoolRecord) ?: []
 
@@ -144,7 +155,7 @@ class VkService {
         return vkCountry
     }
 
-    private VkUniversityRecord toVkUnivesityRecord(University vkApiUniversity) {
+    private VkUniversityRecord toVkUniversityRecord(University vkApiUniversity) {
         VkUniversityRecord vkUniversityRecord = new VkUniversityRecord()
         vkUniversityRecord.universityId = vkApiUniversity.id
         vkUniversityRecord.countryId = vkApiUniversity.country
@@ -161,7 +172,7 @@ class VkService {
         return vkUniversityRecord
     }
 
-    private VkUniversityRecord toVkUnivesityRecord(UserFull vkApiUser) {
+    private VkUniversityRecord toVkUniversityRecord(UserFull vkApiUser) {
         VkUniversityRecord vkUniversityRecord = new VkUniversityRecord()
         vkUniversityRecord.universityId = vkApiUser.university
         vkUniversityRecord.universityName = vkApiUser.universityName
@@ -230,6 +241,19 @@ class VkService {
         vkSchoolRecord.typeName = vkApiSchool.typeStr
 
         return vkSchoolRecord
+    }
+
+    private VkRelationPartner toVkRelationPartner(UserMin vkApiRelationPartner) {
+        if (!vkApiRelationPartner) {
+            return null
+        }
+
+        VkRelationPartner vkRelationPartner = new VkRelationPartner()
+        vkRelationPartner.vkId = vkApiRelationPartner.id
+        vkRelationPartner.firstName = vkApiRelationPartner.firstName
+        vkRelationPartner.lastName = vkApiRelationPartner.lastName
+
+        return vkRelationPartner
     }
 
     Collection<Integer> getFriendsIds(Integer id) {
