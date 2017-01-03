@@ -1,4 +1,4 @@
-== HOWTO: run service
+= HOWTO: run service
 
 POST to http://138.68.145.93:8080/ingest/bfs
 

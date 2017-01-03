@@ -11,3 +11,9 @@ DockerHub - https://hub.docker.com/r/vuzoll/vuzoll-ingest-vk-data/
 link:src/docs/howto-start-docker.adoc[HOWTO: start service as docker container]
 
 link:src/docs/howto-run-service.adoc[HOWTO: run service]
+
+link:src/docs/mongodb-setup.adoc[MongoDB setup]
+
+link:src/docs/vk-api-profile-fields.adoc[vk api profile fields]
+
+link:src/docs/vk-ingested-profile-fields.adoc[vk ingested profile fields]
