@@ -18,16 +18,17 @@ repositories {
 }
 
 dependencies {
-    compile 'org.springframework.boot:spring-boot-starter-web'
-
     compile 'org.codehaus.groovy:groovy-all'
+
+    compile 'org.springframework.boot:spring-boot-starter-web'
+    compile 'org.springframework.data:spring-data-mongodb'
 
     compile 'org.slf4j:slf4j-api'
     compile 'ch.qos.logback:logback-classic'
 
-    compile 'com.vk.api:sdk:0.3.6'
-
     compile 'joda-time:joda-time'
+
+    compile 'com.vk.api:sdk:0.3.6'
 }
 
 apply plugin: 'application'

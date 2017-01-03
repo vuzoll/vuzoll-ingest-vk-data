@@ -41,5 +41,5 @@ db.createUser({ user: 'vuzollAdmin', pwd: '$PASSWORD', roles: [ { role: "userAdm
 
 [source,shell]
 ----
-docker run -it --rm --link vuzoll_mongo:mongo mongo mongo -u vuzollAdmin -p $PASSWORD --authenticationDatabase admin vuzoll_mongo/vkIngested
+docker run -it --rm --link vuzoll_mongo:mongo mongo:3.4.1 mongo -u vuzollAdmin -p $PASSWORD --authenticationDatabase admin vuzoll_mongo/vkIngested
 ----
