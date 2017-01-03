@@ -1,5 +1,0 @@
-Microservice for generating exploration reports from vk data.
-
-TravisCI - https://travis-ci.org/vuzoll/vuzoll-ingest-vk-data/
-
-DockerHub - https://hub.docker.com/r/vuzoll/vuzoll-ingest-vk-data/

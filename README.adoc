@@ -1,7 +1,11 @@
 = vuzoll-ingest-vk-data
 
-include::src/docs/vuzoll-ingest-vk-data.adoc[]
+Microservice for generating exploration reports from vk data.
 
-include::src/docs/howto-start-docker.adoc[]
+TravisCI - https://travis-ci.org/vuzoll/vuzoll-ingest-vk-data/
 
-include::src/docs/howto-run-service.adoc[]
+DockerHub - https://hub.docker.com/r/vuzoll/vuzoll-ingest-vk-data/
+
+include::src/docs/howto-start-docker.adoc[HOWTO: start service as docker container]
+
+include::src/docs/howto-run-service.adoc[HOWTO: run service]
