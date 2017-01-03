@@ -28,7 +28,6 @@ import com.vk.api.sdk.objects.users.University
 import com.vk.api.sdk.objects.users.UserFull
 import com.vk.api.sdk.objects.users.UserMin
 import com.vk.api.sdk.queries.users.UserField
-import groovy.json.JsonOutput
 import groovy.util.logging.Slf4j
 import org.springframework.stereotype.Service
 
@@ -57,14 +56,13 @@ class VkService {
         UserFull vkApiUser = vkRequest
                 .userIds(id.toString())
                 .fields(
-                    UserField.ABOUT,     UserField.ACTIVITIES, UserField.BDATE,       UserField.BOOKS,
-                    UserField.CAREER,    UserField.CITY,       UserField.CONNECTIONS, UserField.CONTACTS,
-                    UserField.COUNTRY,   UserField.DOMAIN,     UserField.EDUCATION,   UserField.GAMES,
-                    UserField.HOME_TOWN, UserField.INTERESTS,  UserField.LAST_SEEN,   UserField.MILITARY,
-                    UserField.MOVIES,    UserField.MUSIC,      UserField.OCCUPATION,  UserField.PERSONAL,
-                    UserField.QUOTES,    UserField.RELATIVES,  UserField.RELATION,    UserField.SCHOOLS,
-                    UserField.SEX,       UserField.TV,         UserField.TIMEZONE,    UserField.UNIVERSITIES,
-                    UserField.VERIFIED
+                    UserField.ABOUT,     UserField.ACTIVITIES, UserField.BDATE,        UserField.BOOKS,
+                    UserField.CAREER,    UserField.CITY,       UserField.CONNECTIONS,  UserField.CONTACTS,
+                    UserField.COUNTRY,   UserField.DOMAIN,     UserField.EDUCATION,    UserField.GAMES,
+                    UserField.HOME_TOWN, UserField.INTERESTS,  UserField.LAST_SEEN,    UserField.MILITARY,
+                    UserField.MOVIES,    UserField.MUSIC,      UserField.OCCUPATION,   UserField.PERSONAL,
+                    UserField.QUOTES,    UserField.RELATIVES,  UserField.RELATION,     UserField.SCHOOLS,
+                    UserField.SEX,       UserField.TV,         UserField.UNIVERSITIES, UserField.VERIFIED
                 )
                 .lang(Lang.UA)
                 .execute().get(0)
@@ -77,18 +75,17 @@ class VkService {
         vkProfile.vkId = vkApiUser.id
         vkProfile.vkDomain = vkApiUser.domain
         vkProfile.vkLastSeen = vkApiUser.lastSeen.time
-        vkProfile.vkActive = vkApiUser.deactivated != null
+        vkProfile.vkActive = (vkApiUser.deactivated == null)
 
         vkProfile.firstName = vkApiUser.firstName
         vkProfile.lastName = vkApiUser.lastName
         vkProfile.maidenName = vkApiUser.maidenName
-        vkProfile.nickname = vkApiUser.nickname
+        vkProfile.middleName = vkApiUser.nickname
         vkProfile.mobilePhone = vkApiUser.mobilePhone
         vkProfile.homePhone = vkApiUser.homePhone
         vkProfile.relationPartner = toVkRelationPartner(vkApiUser.relationPartner)
         vkProfile.screenName = vkApiUser.screenName
         vkProfile.site = vkApiUser.site
-        vkProfile.timezone = vkApiUser.timezone
 
         vkProfile.friendsIds = getFriendsIds(vkApiUser.id)
 

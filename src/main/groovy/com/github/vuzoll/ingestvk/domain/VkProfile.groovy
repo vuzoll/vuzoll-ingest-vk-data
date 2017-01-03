@@ -13,11 +13,10 @@ class VkProfile {
     String firstName
     String lastName
     String maidenName
-    String nickname
+    String middleName
     String mobilePhone
     String homePhone
     VkRelationPartner relationPartner
-    Integer timezone
 
     Set<Integer> friendsIds
 
