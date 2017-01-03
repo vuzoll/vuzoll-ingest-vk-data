@@ -6,6 +6,8 @@ TravisCI - https://travis-ci.org/vuzoll/vuzoll-ingest-vk-data/
 
 DockerHub - https://hub.docker.com/r/vuzoll/vuzoll-ingest-vk-data/
 
-include::src/docs/howto-start-docker.adoc[HOWTO: start service as docker container]
+== Documentation
 
-include::src/docs/howto-run-service.adoc[HOWTO: run service]
+link:src/docs/howto-start-docker.adoc[HOWTO: start service as docker container]
+
+link:src/docs/howto-run-service.adoc[HOWTO: run service]
