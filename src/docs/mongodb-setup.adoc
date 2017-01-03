@@ -1,1 +1,45 @@
 = MongoDB setup
+
+== Environment setup
+
+[source,shell]
+----
+mkdir -p /data/mongodb
+----
+
+== Cleaning previosly started container
+
+[source,shell]
+----
+docker ps # to determine if container is already running
+docker kill $CONTAINER_ID # if needed
+docker rm vuzoll_mongo # if needed
+----
+
+== Start mongo
+
+[source,shell]
+----
+docker pull mongo:3.4.1
+docker run --name vuzoll_mongo -v /data/mongodb:/data/db -d mongo:3.4.1 --auth
+----
+
+== Add admin user
+
+[source,shell]
+----
+docker exec -it vuzoll_mongo mongo admin
+----
+
+[source,shell]
+.Execute in mongo shell
+----
+db.createUser({ user: 'vuzollAdmin', pwd: '$PASSWORD', roles: [ { role: "userAdminAnyDatabase", db: "admin" } ] });
+----
+
+== Connect externally
+
+[source,shell]
+----
+docker run -it --rm --link vuzoll_mongo:mongo mongo mongo -u vuzollAdmin -p $PASSWORD --authenticationDatabase admin vuzoll_mongo/vkIngested
+----

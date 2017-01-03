@@ -30,7 +30,7 @@ INGEST_VK_DEFAULT_SEED_ID - initial vk id to use if data file is empty
 [source,shell]
 ----
 docker pull vuzoll/vuzoll-ingest-vk-data:$TAG # to load specific image
-docker run -dit --name vuzoll_ingest_vk_data -v /data:/data -v /logs:/logs -p 8080:8080 vuzoll/vuzoll-ingest-vk-data:$TAG # to start specific image
+docker run -dit --name vuzoll_ingest_vk_data --link vuzoll_mongo -v /data:/data -v /logs:/logs -p 8080:8080 vuzoll/vuzoll-ingest-vk-data:$TAG # to start specific image
 ----
 
 == Authorized start
@@ -45,5 +45,5 @@ If you want to authorize your VK API access to be able to ingest secured data do
 [source,shell]
 ----
 docker pull vuzoll/vuzoll-ingest-vk-data:$TAG # to load specific image
-docker run -dit --name vuzoll_ingest_vk_data -v /data:/data -v /logs:/logs -e INGEST_VK_ACCESS_TOKEN=ACCESS_ID -e INGEST_VK_USER_ID=USER_ID -p 8080:8080 vuzoll/vuzoll-ingest-vk-data:$TAG
+docker run -dit --name vuzoll_ingest_vk_data --link vuzoll_mongo -v /data:/data -v /logs:/logs -e INGEST_VK_ACCESS_TOKEN=ACCESS_ID -e INGEST_VK_USER_ID=USER_ID -p 8080:8080 vuzoll/vuzoll-ingest-vk-data:$TAG
 ----
