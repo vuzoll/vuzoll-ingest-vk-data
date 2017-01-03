@@ -3,66 +3,72 @@
 == Fields description
 
 |===
-|Name |Class |Type |Description |Comments |Example
+|Name |Class |Description |Value |Comments |Example
 
 |vkId
 |Integer
+|id профиля вк
 |
 |
-|
-|
+|3542756
 
 |vkDomain
 |String
+|адрес страницы вк
 |
 |
-|
-|
+|yaroslav.yermilov
 
 |vkLastSeen
 |Integer
+|время последнего захода вк
+|можно понимать насколько страница актуальна по времени
 |
-|
-|
-|
+|1483406013
 
 |vkActive
 |Boolean
+|не удалён ли профиль
+|удаленные профили тоже возвращаются
 |
-|
-|
-|
+|true
 
 |firstName
 |String
 |
+|для связи с другими датасетами
 |
-|
-|
+|Ярослав
 
 |lastName
 |String
 |
+|для связи с другими датасетами
 |
-|
-|
+|Ермилов
 
 |maidenName
 |String
-|
-|
+|девичья фамилия
+|для связи с другими датасетами
 |
 |
 
-|nickname
+|middleName
 |String
-|
-|
+|отчество (также используется для ников)
+|для связи с другими датасетами
 |
 |
 
 |relationPartner
-|VkRelationPartner
+a|VkRelationPartner:
+
+_Integer vkId_
+
+_String firstName_
+
+_String lastName_
 |
 |
 |
@@ -70,253 +76,448 @@
 
 |screenName
 |String
-|
-|
+|короткое имя страницы пользователя
+|для связи с другими датасетами
 |
 |
 
 |site
 |String
-|
-|
-|
-|
-
-|timezone
-|Integer
-|
-|
+|адрес сайта, указанный в профиле сайт пользователя
+|для связи с другими датасетами
 |
 |
 
 |mobilePhone
 |String
 |
-|
+|для связи с другими датасетами
 |
 |
 
 |homePhone
 |String
 |
-|
+|для связи с другими датасетами
 |
 |
 
 |friendsIds
 |Set<Integer>
+|идентификаторы профилей друзей
+|изучение связей
 |
-|
-|
-|
+|[1337190, 1644558, 2401839, 3543225, 3543569, 3656853, 4021333, 4127157, 4194932, 4260458, 5653301, 5767365, 6782866, 7036687, 7049426, 8928523, 10185407, 10190688, 10323525, 10850610, 11500014, 11582866, 11743931, 12306349, 13308458, 14203326, 14909475, 17089079, 17755387, 18404586, 19947034, 20953577, 30018582, 42962680, 43525149, 45257884, 45427346, 45566221, 52258663, 96413171, 100506664, 100529357, 122592877, 127232973, 173831377, 191302633, 210573423, 270847763, 328755812]
 
 |ingestedTimestamp
 |Long
+|время загрузки профиля
+|проверка на обновление данных
 |
-|
-|
-|
+|1483448558552
 
 |birthday
 |String
 |
+|возраст
 |
-|
-|
+|25.1.1992
 
 |city
-|VkCity
+a|VkCity
+
+_Integer vkId_
+
+_String name_
+|город проживания
+|изучение миграции
 |
-|
-|
-|
+|{
+"vkId": 314,
+"name": "Київ"
+}
 
 |country
 |VkCountry
+
+_Integer vkId_
+
+_String name_
+|страна проживания
+|изучение миграции
 |
-|
-|
-|
+|{
+"vkId": 2,
+"name": "Україна"
+}
 
 |homeTown
 |String
+|родной город
+|изучение миграции
 |
-|
-|
-|
+|Винница
 
 |sex
 |Integer
+|пол
 |
-|
-|
-|
+|Возможные значения:
+ 1 — женский;
+ 2 — мужской;
+ 0 — пол не указан.
+|2
 
 |occupation
 |VkOccupation
+|текущая занятость
 |
-|
-|
-|
+|это может быть и учеба и работа
+|{
+"type": "work",
+"vkId": null,
+"name": "EPAM Systems"
+}
 
 |careerRecords
-|Set<VkCareerRecord>
+a|Set<VkCareerRecord>
+
+_Integer groupId_
+
+_Integer countryId_
+
+_Integer cityId_
+
+_Integer from_
+
+_Integer until_
+
+_String position_
+|карьера
 |
 |
-|
-|
+|[{
+"position": "Senior Software Engineer",
+"from": 2011,
+"countryId": 2,
+"until": null,
+"groupId": null,
+"cityId": 314
+}]
 
 |universityRecords
-|Set<VkUniversityRecord>
+a|Set<VkUniversityRecord>
+
+_Integer universityId_
+
+_Integer countryId_
+
+_Integer cityId_
+
+_String universityName_
+
+_Integer facultyId_
+
+_String facultyName_
+
+_Integer chairId_
+
+_String chairName_
+
+_Integer graduationYear_
+
+_String educationForm_
+
+_String educationStatus_
+|образование
 |
 |
-|
-|
+|[{
+"universityId": 2881,
+"graduationYear": 2015,
+"educationForm": "Очне відділення",
+"countryId": 2,
+"facultyId": 33468,
+"facultyName": "Факультет кібернетики",
+"universityName": "КНУ им. Т. Шевченко",
+"educationStatus": "Студент (магiстр)",
+"chairId": 38291,
+"chairName": "Теории и технологии программирования",
+"cityId": 314
+}]
 
 |militaryRecords
-|Set<VkMilitaryRecord>
-|
-|
+a|Set<VkMilitaryRecord>
+
+_Integer vkId_
+
+_String unit_
+
+_Integer countryId_
+
+_Integer from_
+
+_Integer until_
+|служба в армии
+|она как-то влияет? на неё что-то влияет?
 |
 |
 
 |schoolRecords
-|Set<VkSchoolRecord>
+a|Set<VkSchoolRecord>
+
+_String vkId_
+
+_Integer countryId_
+
+_Integer cityId_
+
+_String name_
+
+_Integer yearFrom_
+
+_Integer yearTo_
+
+_Integer graduationYear_
+
+_String classLetter_
+
+_Integer typeId_
+
+_String typeName_
+|школьное образование
+|не только ведь университеты?
 |
-|
-|
-|
+|[{
+"graduationYear": 2009,
+"countryId": 2,
+"vkId": "3023",
+"typeName": "Гiмназiя",
+"typeId": 1,
+"yearTo": 2009,
+"cityId": 761,
+"yearFrom": 2007,
+"classLetter": "б",
+"name": "Гимназия №17"
+}, {
+"graduationYear": 2009,
+"countryId": 2,
+"vkId": "12293",
+"typeName": null,
+"typeId": null,
+"yearTo": 2007,
+"cityId": 761,
+"yearFrom": 1999,
+"classLetter": "в",
+"name": "Школа №15"
+}]
 
 |skypeLogin
 |String
 |
+|для связи с другими датасетами
 |
-|
-|
+|yaroslav.yermilov
 
 |facebookId
 |String
+|id страницы фб
+|для связи с другими датасетами
 |
-|
-|
-|
+|100002759770983
 
 |facebookName
 |String
+|имя в фб
+|для связи с другими датасетами
 |
-|
-|
-|
+|Yaroslav  Yermilov
 
 |twitterId
 |String
 |
+|для связи с другими датасетами
 |
-|
-|
+|yermilov17
 
 |livejournalId
 |String
 |
-|
+|для связи с другими датасетами
 |
 |
 
 |instagramId
 |String
 |
+|для связи с другими датасетами
 |
-|
-|
+|yaroslav.yermilov
 
 |verified
 |String
+|верифицирована ли страница
+|можно измерять нашу увереность в правдивости данных
 |
-|
-|
-|
+|false
 
 |about
 |String
+|содержимое поля «О себе» из профиля пользователя
+|можно какие-то смешные анализы делать
 |
-|
-|
-|
+|http://ua.linkedin.com/pub/yaroslav-yermilov/58/682/506
 
 |activities
 |String
-|
-|
+|содержимое поля «Деятельность» из профиля пользователя
+|можно какие-то смешные анализы делать
 |
 |
 
 |books
 |String
-|
-|
+|содержимое поля «Любимые книги» из профиля пользователя
+|можно какие-то смешные анализы делать
 |
 |
 
 |games
 |String
-|
-|
+|содержимое поля «Любимые игры» из профиля пользователя
+|можно какие-то смешные анализы делать
 |
 |
 
 |interests
 |String
+|содержимое поля «Интересы» из профиля
+|можно какие-то смешные анализы делать
 |
-|
-|
-|
+|знания, закономерности, вопросы и ответы, метафизика, поиск смысла, дискуссии и споры; программирование, совершенный код, фундаментальные основы, большие данные; музыка, тяжелая музыка, экстремально тяжелая музыка; "что? где? когда?"; книги научно-фантастические, книги научно-популярные, антиутопии; футбол, тактика, история, Динамо Киев, Тоттенхэм; астрономия, астрофизика, небо, планеты, звезды, галактики, фотографии
 
 |movies
 |String
-|
-|
+|содержимое поля «Любимые фильмы» из профиля пользователя
+|можно какие-то смешные анализы делать
 |
 |
 
 |music
 |String
+|содержимое поля «Любимая музыка» из профиля пользователя
+|можно какие-то смешные анализы делать
 |
-|
-|
-|
+|http://www.lastfm.ru/user/yermilov
 
 |personalBelief
-|VkPersonalBelief
-|
-|
-|
+a|VkPersonalBelief
+
+_Integer politicalBelief_
+
+_Collection<String> languages_
+
+_String religionBelief_
+
+_String inspiredBy_
+
+_Integer importantInPeople_
+
+_Integer importantInLife_
+
+_Integer smokingAttitude_
+
+_Integer alcoholAttitude_
+|информация о полях из раздела «Жизненная позиция»
+|можно какие-то смешные и не очень (знание языков, политические предпочтения) анализы делать
+a|
+* political (integer) — политические предпочтения. Возможные значения:
+1 — коммунистические;
+2 — социалистические;
+3 — умеренные;
+4 — либеральные;
+5 — консервативные;
+6 — монархические;
+7 — ультраконсервативные;
+8 — индифферентные;
+9 — либертарианские.
+* langs (array) — языки.
+* religion (string) — мировоззрение.
+* inspired_by (string) — источники вдохновения.
+* people_main (integer) — главное в людях. Возможные значения:
+1 — ум и креативность;
+2 — доброта и честность;
+3 — красота и здоровье;
+4 — власть и богатство;
+5 — смелость и упорство;
+6 — юмор и жизнелюбие.
+* life_main (integer) — главное в жизни. Возможные значения:
+1 — семья и дети;
+2 — карьера и деньги;
+3 — развлечения и отдых;
+4 — наука и исследования;
+5 — совершенствование мира;
+6 — саморазвитие;
+7 — красота и искусство;
+8 — слава и влияние;
+* smoking (integer) — отношение к курению. Возможные значения:
+1 — резко негативное;
+2 — негативное;
+3 — компромиссное;
+4 — нейтральное;
+5 — положительное.
+* alcohol (integer) — отношение к алкоголю. Возможные значения:
+1 — резко негативное;
+2 — негативное;
+3 — компромиссное;
+4 — нейтральное;
+5 — положительное
 |
 
 |quotes
 |String
+|любимые цитаты
+|можно какие-то смешные анализы делать
 |
-|
-|
-|
+|Человек создан для творчества, и я всегда знал, что люблю творить. Увы, я обделён талантом художника или музыканта. Зато умею писать программы. Я хочу, чтобы компьютер был моим слугой, а не господином, поэтому должен уметь быстро и эффективно объяснить ему, что делать.
 
 |relatives
-|Set<VkRelative>
+a|Set<VkRelative>
+
+_Integer vkId_
+
+_String type_
+|список родственников
+|можно какие-то смешные и не очень (семейное положение) анализы делать
 |
-|
-|
-|
+|[{
+"type": "sibling",
+"vkId": 4194932
+}, {
+"type": "parent",
+"vkId": 4021333
+}]
 
 |relationStatus
 |Integer
-|
-|
-|
-|
+|семейное положение
+|можно какие-то смешные и не очень (семейное положение) анализы делать
+a|Возможные значения:
+
+* 1 — не женат/не замужем;
+* 2 — есть друг/есть подруга;
+* 3 — помолвлен/помолвлена;
+* 4 — женат/замужем;
+* 5 — всё сложно;
+* 6 — в активном поиске;
+* 7 — влюблён/влюблена;
+* 0 — не указано
+|0
 
 |tvShows
 |String
-|
-|
+|любимые телешоу
+|можно какие-то смешные анализы делать
 |
 |
 |===
