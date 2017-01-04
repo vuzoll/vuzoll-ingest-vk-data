@@ -24,6 +24,8 @@ INGEST_VK_DEFAULT_SEED_ID - initial vk id to use if data file is empty
 
 INGEST_VK_MONGO_DATABASE_NAME - mongodb database name to use (default is vkIngested)
 
+INGEST_VK_MONGO_AUTH_DATABASE_NAME - mongodb database name used for authentication (default is admin)
+
 INGEST_VK_MONGO_HOST - host of mongodb instance (default is vuzoll_mongo)
 
 INGEST_VK_MONGO_PORT - port of mongodb instance (default is 27017)
