@@ -100,7 +100,7 @@ class VkService {
         VkProfile vkProfile = new VkProfile()
         vkProfile.vkId = vkApiUser.id
         vkProfile.vkDomain = vkApiUser.domain
-        vkProfile.vkLastSeen = vkApiUser.lastSeen.time
+        vkProfile.vkLastSeen = vkApiUser.lastSeen?.time
         vkProfile.vkActive = (vkApiUser.deactivated == null)
 
         vkProfile.firstName = vkApiUser.firstName
