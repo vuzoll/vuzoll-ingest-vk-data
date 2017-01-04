@@ -1,3 +1,4 @@
+import ch.qos.logback.classic.Level
 import ch.qos.logback.classic.encoder.PatternLayoutEncoder
 import ch.qos.logback.core.ConsoleAppender
 import ch.qos.logback.core.rolling.RollingFileAppender
@@ -21,4 +22,8 @@ appender('FILE', RollingFileAppender) {
     }
 }
 
-logger('com.github.vuzoll', DEBUG, [ 'STDOUT', 'FILE' ])
+String VUZOLL_LOG_LEVEL = System.getenv('INGEST_VK_VUZOLL_LOG_LEVEL') ?: 'INFO'
+String ROOT_LOG_LEVEL = System.getenv('INGEST_VK_ROOT_LOG_LEVEL') ?: 'INFO'
+
+root(Level.toLevel(ROOT_LOG_LEVEL), ['STDOUT', 'FILE' ])
+logger('com.github.vuzoll', Level.toLevel(VUZOLL_LOG_LEVEL), [ 'STDOUT', 'FILE' ])

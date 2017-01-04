@@ -1,8 +1,6 @@
 package com.github.vuzoll.ingestvk.controller
 
-import com.github.vuzoll.ingestvk.service.DataStorageService
 import com.github.vuzoll.ingestvk.service.IngestVkService
-import com.github.vuzoll.ingestvk.service.VkService
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.RequestBody
