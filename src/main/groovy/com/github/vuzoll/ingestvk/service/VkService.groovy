@@ -129,10 +129,10 @@ class VkService {
         vkProfile.sex = vkApiUser.sex
 
         vkProfile.occupation = toVkOccupation(vkApiUser.occupation)
-        vkProfile.careerRecords = vkApiUser.career?.collect(this.&toVkCareerRecord) ?: []
-        vkProfile.universityRecords = (vkApiUser.universities?.collect(this.&toVkUniversityRecord) ?: []) + toVkUniversityRecord(vkApiUser)
-        vkProfile.militaryRecords = vkApiUser.military?.collect(this.&toVkMilitaryRecord) ?: []
-        vkProfile.schoolRecords = vkApiUser.schools?.collect(this.&toVkSchoolRecord) ?: []
+        vkProfile.careerRecords = vkApiUser.career?.collect(this.&toVkCareerRecord)?.findAll({ it != null }) ?: []
+        vkProfile.universityRecords = ((vkApiUser.universities?.collect(this.&toVkUniversityRecord) ?: []) + toVkUniversityRecord(vkApiUser))?.findAll({ it != null }) ?: []
+        vkProfile.militaryRecords = vkApiUser.military?.collect(this.&toVkMilitaryRecord)?.findAll({ it != null }) ?: []
+        vkProfile.schoolRecords = vkApiUser.schools?.collect(this.&toVkSchoolRecord)?.findAll({ it != null }) ?: []
 
         vkProfile.skypeLogin = vkApiUser.skype
         vkProfile.facebookId = vkApiUser.facebook
@@ -151,7 +151,7 @@ class VkService {
         vkProfile.music = vkApiUser.music
         vkProfile.personalBelief = toVkPersonalBelief(vkApiUser.personal)
         vkProfile.quotes = vkApiUser.quotes
-        vkProfile.relatives = vkApiUser.relatives?.collect(this.&toVkRelative)
+        vkProfile.relatives = vkApiUser.relatives?.collect(this.&toVkRelative)?.findAll({ it != null }) ?: []
         vkProfile.relationStatus = vkApiUser.relation
         vkProfile.tvShows = vkApiUser.tv
 
@@ -159,6 +159,10 @@ class VkService {
     }
 
     private VkCareerRecord toVkCareerRecord(Career vkApiCareer) {
+        if (vkApiCareer == null) {
+            return null
+        }
+
         VkCareerRecord vkCareerRecord = new VkCareerRecord()
         vkCareerRecord.groupId = vkApiCareer.groupId
         vkCareerRecord.countryId = vkApiCareer.countryId
@@ -171,6 +175,10 @@ class VkService {
     }
 
     private VkCity toVkCity(BaseObject vkApiCity) {
+        if (vkApiCity == null) {
+            return null
+        }
+
         VkCity vkCity = new VkCity()
         vkCity.vkId = vkApiCity.id
         vkCity.name = vkApiCity.title
@@ -179,6 +187,10 @@ class VkService {
     }
 
     private VkCountry toVkCountry(Country vkApiCountry) {
+        if (vkApiCountry == null) {
+            return null
+        }
+
         VkCountry vkCountry = new VkCountry()
         vkCountry.vkId = vkApiCountry.id
         vkCountry.name = vkApiCountry.title
@@ -187,6 +199,10 @@ class VkService {
     }
 
     private VkUniversityRecord toVkUniversityRecord(University vkApiUniversity) {
+        if (vkApiUniversity == null) {
+            return null
+        }
+
         VkUniversityRecord vkUniversityRecord = new VkUniversityRecord()
         vkUniversityRecord.universityId = vkApiUniversity.id
         vkUniversityRecord.countryId = vkApiUniversity.country
@@ -204,6 +220,10 @@ class VkService {
     }
 
     private VkUniversityRecord toVkUniversityRecord(UserFull vkApiUser) {
+        if (vkApiUser == null) {
+            return null
+        }
+
         VkUniversityRecord vkUniversityRecord = new VkUniversityRecord()
         vkUniversityRecord.universityId = vkApiUser.university
         vkUniversityRecord.universityName = vkApiUser.universityName
@@ -217,6 +237,10 @@ class VkService {
     }
 
     private VkMilitaryRecord toVkMilitaryRecord(Military vkApiMilitary) {
+        if (vkApiMilitary == null) {
+            return null
+        }
+
         VkMilitaryRecord vkMilitaryRecord = new VkMilitaryRecord()
         vkMilitaryRecord.vkId = vkApiMilitary.unitId
         vkMilitaryRecord.unit = vkApiMilitary.unit
@@ -228,6 +252,10 @@ class VkService {
     }
 
     private VkOccupation toVkOccupation(Occupation vkApiOccupation) {
+        if (vkApiOccupation == null) {
+            return null
+        }
+
         VkOccupation vkOccupation = new VkOccupation()
         vkOccupation.vkId = vkApiOccupation.id
         vkOccupation.type = vkApiOccupation.type
@@ -237,6 +265,10 @@ class VkService {
     }
 
     private VkPersonalBelief toVkPersonalBelief(Personal vkApiPersonal) {
+        if (vkApiPersonal == null) {
+            return null
+        }
+
         VkPersonalBelief vkPersonalBelief = new VkPersonalBelief()
         vkPersonalBelief.politicalBelief = vkApiPersonal?.political
         vkPersonalBelief.languages = vkApiPersonal?.langs ?: []
@@ -251,6 +283,10 @@ class VkService {
     }
 
     private VkRelative toVkRelative(Relative vkApiRelative) {
+        if (vkApiRelative == null) {
+            return null
+        }
+
         VkRelative vkRelative = new VkRelative()
         vkRelative.vkId = vkApiRelative.id
         vkRelative.type = vkApiRelative.type
@@ -259,6 +295,10 @@ class VkService {
     }
 
     private VkSchoolRecord toVkSchoolRecord(School vkApiSchool) {
+        if (vkApiSchool == null) {
+            return null
+        }
+
         VkSchoolRecord vkSchoolRecord = new VkSchoolRecord()
         vkSchoolRecord.vkId = vkApiSchool.id
         vkSchoolRecord.countryId = vkApiSchool.country
@@ -275,7 +315,7 @@ class VkService {
     }
 
     private VkRelationPartner toVkRelationPartner(UserMin vkApiRelationPartner) {
-        if (!vkApiRelationPartner) {
+        if (vkApiRelationPartner == null) {
             return null
         }
 
