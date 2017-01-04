@@ -1,6 +1,9 @@
 package com.github.vuzoll.ingestvk.config
 
 import com.mongodb.Mongo
+import com.mongodb.MongoClient
+import com.mongodb.MongoCredential
+import com.mongodb.ServerAddress
 import org.springframework.context.annotation.Configuration
 import org.springframework.data.authentication.UserCredentials
 import org.springframework.data.mongodb.config.AbstractMongoConfiguration
@@ -23,18 +26,8 @@ class MongoConfiguration extends AbstractMongoConfiguration {
     }
 
     @Override
-    protected String getAuthenticationDatabaseName() {
-        AUTHENTICATION_DATABASE_NAME
-    }
-
-    @Override
     Mongo mongo() throws Exception {
-        new Mongo(HOST, PORT)
-    }
-
-    @Override
-    protected UserCredentials getUserCredentials() {
-        new UserCredentials(USERNAME, PASSWORD)
+        new MongoClient(new ServerAddress(HOST, PORT), [ MongoCredential.createCredential(USERNAME, AUTHENTICATION_DATABASE_NAME, PASSWORD.toCharArray()) ])
     }
 
     @Override

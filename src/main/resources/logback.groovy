@@ -26,4 +26,4 @@ String VUZOLL_LOG_LEVEL = System.getenv('INGEST_VK_VUZOLL_LOG_LEVEL') ?: 'INFO'
 String ROOT_LOG_LEVEL = System.getenv('INGEST_VK_ROOT_LOG_LEVEL') ?: 'INFO'
 
 root(Level.toLevel(ROOT_LOG_LEVEL), ['STDOUT', 'FILE' ])
-logger('com.github.vuzoll', Level.toLevel(VUZOLL_LOG_LEVEL), [ 'STDOUT', 'FILE' ])
+logger('com.github.vuzoll', Level.toLevel(VUZOLL_LOG_LEVEL), [ 'STDOUT', 'FILE' ], false)
