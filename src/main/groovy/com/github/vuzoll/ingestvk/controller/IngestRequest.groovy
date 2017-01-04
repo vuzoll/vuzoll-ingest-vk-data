@@ -5,8 +5,11 @@ import groovy.transform.ToString
 @ToString(includeNames = true, ignoreNulls = true)
 class IngestRequest {
 
-    Integer seedId
+    String method
+
     String timeLimit
     Integer ingestedLimit
     Integer dataSizeLimit
+
+    Map<String, String> parameters
 }

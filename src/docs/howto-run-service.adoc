@@ -1,0 +1,18 @@
+= HOWTO: run service
+
+POST to http://138.68.145.93:8080/ingest
+
+Following parameters are available for POST body:
+
+[source]
+----
+{
+  "method": "randomized-bfs",
+  "timeLimit": '1h28min17sec',
+  "ingestedLimit": 300,
+  "dataSizeLimit": 300,
+  "parameters": {
+    "seedId": 123456789,
+  }
+}
+----

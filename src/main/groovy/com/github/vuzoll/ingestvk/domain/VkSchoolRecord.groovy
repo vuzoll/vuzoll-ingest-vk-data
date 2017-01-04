@@ -2,7 +2,7 @@ package com.github.vuzoll.ingestvk.domain
 
 import groovy.transform.EqualsAndHashCode
 
-@EqualsAndHashCode
+@EqualsAndHashCode(includes = [ 'vkId', 'classLetter', 'yearFrom', 'yearTo' ])
 class VkSchoolRecord {
 
     String vkId

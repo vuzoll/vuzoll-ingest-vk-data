@@ -15,6 +15,8 @@ import com.github.vuzoll.ingestvk.domain.VkRelative
 import com.vk.api.sdk.client.Lang
 import com.vk.api.sdk.client.VkApiClient
 import com.vk.api.sdk.client.actors.UserActor
+import com.vk.api.sdk.exceptions.ApiAuthValidationException
+import com.vk.api.sdk.exceptions.ApiUserDeletedException
 import com.vk.api.sdk.httpclient.HttpTransportClient
 import com.vk.api.sdk.objects.base.BaseObject
 import com.vk.api.sdk.objects.base.Country
@@ -43,19 +45,20 @@ class VkService {
     VkApiClient vk = new VkApiClient(HttpTransportClient.getInstance())
 
     VkProfile ingestVkProfileById(Integer id) {
-        log.debug "Ingesting vk profile by id=$id..."
-        Thread.sleep(VK_API_REQUEST_DELAY)
+        try {
+            log.debug "Ingesting vk profile by id=$id..."
+            Thread.sleep(VK_API_REQUEST_DELAY)
 
-        def vkRequest
-        if (VK_USER_ID && VK_ACCESS_TOKEN) {
-            vkRequest = vk.users().get(new UserActor(VK_USER_ID, VK_ACCESS_TOKEN))
-        } else {
-            vkRequest = vk.users().get()
-        }
+            def vkRequest
+            if (VK_USER_ID && VK_ACCESS_TOKEN) {
+                vkRequest = vk.users().get(new UserActor(VK_USER_ID, VK_ACCESS_TOKEN))
+            } else {
+                vkRequest = vk.users().get()
+            }
 
-        UserFull vkApiUser = vkRequest
-                .userIds(id.toString())
-                .fields(
+            UserFull vkApiUser = vkRequest
+                    .userIds(id.toString())
+                    .fields(
                     UserField.ABOUT,     UserField.ACTIVITIES, UserField.BDATE,        UserField.BOOKS,
                     UserField.CAREER,    UserField.CITY,       UserField.CONNECTIONS,  UserField.CONTACTS,
                     UserField.COUNTRY,   UserField.DOMAIN,     UserField.EDUCATION,    UserField.GAMES,
@@ -63,18 +66,46 @@ class VkService {
                     UserField.MOVIES,    UserField.MUSIC,      UserField.OCCUPATION,   UserField.PERSONAL,
                     UserField.QUOTES,    UserField.RELATIVES,  UserField.RELATION,     UserField.SCHOOLS,
                     UserField.SEX,       UserField.TV,         UserField.UNIVERSITIES, UserField.VERIFIED
-                )
-                .lang(Lang.UA)
-                .execute().get(0)
+            )
+                    .lang(Lang.UA)
+                    .execute().get(0)
 
-        return toVkProfile(vkApiUser)
+            return toVkProfile(vkApiUser)
+        } catch (ApiAuthValidationException e) {
+            throw new RuntimeException("vk validation required - visit $e.redirectUri", e)
+        }
+    }
+
+    Collection<Integer> getFriendsIds(Integer id) {
+        try {
+            log.debug "Getting friend list of profile id=$id..."
+            Thread.sleep(VK_API_REQUEST_DELAY)
+
+            def vkRequest
+            if (VK_USER_ID && VK_ACCESS_TOKEN) {
+                vkRequest = vk.friends().get(new UserActor(VK_USER_ID, VK_ACCESS_TOKEN))
+            } else {
+                vkRequest = vk.friends().get()
+            }
+
+            return vkRequest
+                    .userId(id)
+                    .execute()
+                    .items
+        } catch (ApiAuthValidationException e) {
+            log.error("vk validation required - visit $e.redirectUri", e)
+            throw new RuntimeException("vk validation required - visit $e.redirectUri", e)
+        } catch (ApiUserDeletedException e) {
+            log.warn("User with id=$id was deactivated", e)
+            return []
+        }
     }
 
     private VkProfile toVkProfile(UserFull vkApiUser) {
         VkProfile vkProfile = new VkProfile()
         vkProfile.vkId = vkApiUser.id
         vkProfile.vkDomain = vkApiUser.domain
-        vkProfile.vkLastSeen = vkApiUser.lastSeen.time
+        vkProfile.vkLastSeen = vkApiUser.lastSeen?.time
         vkProfile.vkActive = (vkApiUser.deactivated == null)
 
         vkProfile.firstName = vkApiUser.firstName
@@ -98,10 +129,10 @@ class VkService {
         vkProfile.sex = vkApiUser.sex
 
         vkProfile.occupation = toVkOccupation(vkApiUser.occupation)
-        vkProfile.careerRecords = vkApiUser.career?.collect(this.&toVkCareerRecord) ?: []
-        vkProfile.universityRecords = (vkApiUser.universities?.collect(this.&toVkUniversityRecord) ?: []) + toVkUniversityRecord(vkApiUser)
-        vkProfile.militaryRecords = vkApiUser.military?.collect(this.&toVkMilitaryRecord) ?: []
-        vkProfile.schoolRecords = vkApiUser.schools?.collect(this.&toVkSchoolRecord) ?: []
+        vkProfile.careerRecords = vkApiUser.career?.collect(this.&toVkCareerRecord)?.findAll({ it != null }) ?: []
+        vkProfile.universityRecords = ((vkApiUser.universities?.collect(this.&toVkUniversityRecord) ?: []) + toVkUniversityRecord(vkApiUser))?.findAll({ it != null }) ?: []
+        vkProfile.militaryRecords = vkApiUser.military?.collect(this.&toVkMilitaryRecord)?.findAll({ it != null }) ?: []
+        vkProfile.schoolRecords = vkApiUser.schools?.collect(this.&toVkSchoolRecord)?.findAll({ it != null }) ?: []
 
         vkProfile.skypeLogin = vkApiUser.skype
         vkProfile.facebookId = vkApiUser.facebook
@@ -120,7 +151,7 @@ class VkService {
         vkProfile.music = vkApiUser.music
         vkProfile.personalBelief = toVkPersonalBelief(vkApiUser.personal)
         vkProfile.quotes = vkApiUser.quotes
-        vkProfile.relatives = vkApiUser.relatives?.collect(this.&toVkRelative)
+        vkProfile.relatives = vkApiUser.relatives?.collect(this.&toVkRelative)?.findAll({ it != null }) ?: []
         vkProfile.relationStatus = vkApiUser.relation
         vkProfile.tvShows = vkApiUser.tv
 
@@ -128,6 +159,10 @@ class VkService {
     }
 
     private VkCareerRecord toVkCareerRecord(Career vkApiCareer) {
+        if (vkApiCareer == null) {
+            return null
+        }
+
         VkCareerRecord vkCareerRecord = new VkCareerRecord()
         vkCareerRecord.groupId = vkApiCareer.groupId
         vkCareerRecord.countryId = vkApiCareer.countryId
@@ -140,6 +175,10 @@ class VkService {
     }
 
     private VkCity toVkCity(BaseObject vkApiCity) {
+        if (vkApiCity == null) {
+            return null
+        }
+
         VkCity vkCity = new VkCity()
         vkCity.vkId = vkApiCity.id
         vkCity.name = vkApiCity.title
@@ -148,6 +187,10 @@ class VkService {
     }
 
     private VkCountry toVkCountry(Country vkApiCountry) {
+        if (vkApiCountry == null) {
+            return null
+        }
+
         VkCountry vkCountry = new VkCountry()
         vkCountry.vkId = vkApiCountry.id
         vkCountry.name = vkApiCountry.title
@@ -156,6 +199,10 @@ class VkService {
     }
 
     private VkUniversityRecord toVkUniversityRecord(University vkApiUniversity) {
+        if (vkApiUniversity == null) {
+            return null
+        }
+
         VkUniversityRecord vkUniversityRecord = new VkUniversityRecord()
         vkUniversityRecord.universityId = vkApiUniversity.id
         vkUniversityRecord.countryId = vkApiUniversity.country
@@ -173,6 +220,10 @@ class VkService {
     }
 
     private VkUniversityRecord toVkUniversityRecord(UserFull vkApiUser) {
+        if (vkApiUser == null) {
+            return null
+        }
+
         VkUniversityRecord vkUniversityRecord = new VkUniversityRecord()
         vkUniversityRecord.universityId = vkApiUser.university
         vkUniversityRecord.universityName = vkApiUser.universityName
@@ -186,6 +237,10 @@ class VkService {
     }
 
     private VkMilitaryRecord toVkMilitaryRecord(Military vkApiMilitary) {
+        if (vkApiMilitary == null) {
+            return null
+        }
+
         VkMilitaryRecord vkMilitaryRecord = new VkMilitaryRecord()
         vkMilitaryRecord.vkId = vkApiMilitary.unitId
         vkMilitaryRecord.unit = vkApiMilitary.unit
@@ -197,6 +252,10 @@ class VkService {
     }
 
     private VkOccupation toVkOccupation(Occupation vkApiOccupation) {
+        if (vkApiOccupation == null) {
+            return null
+        }
+
         VkOccupation vkOccupation = new VkOccupation()
         vkOccupation.vkId = vkApiOccupation.id
         vkOccupation.type = vkApiOccupation.type
@@ -206,6 +265,10 @@ class VkService {
     }
 
     private VkPersonalBelief toVkPersonalBelief(Personal vkApiPersonal) {
+        if (vkApiPersonal == null) {
+            return null
+        }
+
         VkPersonalBelief vkPersonalBelief = new VkPersonalBelief()
         vkPersonalBelief.politicalBelief = vkApiPersonal?.political
         vkPersonalBelief.languages = vkApiPersonal?.langs ?: []
@@ -220,6 +283,10 @@ class VkService {
     }
 
     private VkRelative toVkRelative(Relative vkApiRelative) {
+        if (vkApiRelative == null) {
+            return null
+        }
+
         VkRelative vkRelative = new VkRelative()
         vkRelative.vkId = vkApiRelative.id
         vkRelative.type = vkApiRelative.type
@@ -228,6 +295,10 @@ class VkService {
     }
 
     private VkSchoolRecord toVkSchoolRecord(School vkApiSchool) {
+        if (vkApiSchool == null) {
+            return null
+        }
+
         VkSchoolRecord vkSchoolRecord = new VkSchoolRecord()
         vkSchoolRecord.vkId = vkApiSchool.id
         vkSchoolRecord.countryId = vkApiSchool.country
@@ -244,7 +315,7 @@ class VkService {
     }
 
     private VkRelationPartner toVkRelationPartner(UserMin vkApiRelationPartner) {
-        if (!vkApiRelationPartner) {
+        if (vkApiRelationPartner == null) {
             return null
         }
 
@@ -254,27 +325,5 @@ class VkService {
         vkRelationPartner.lastName = vkApiRelationPartner.lastName
 
         return vkRelationPartner
-    }
-
-    Collection<Integer> getFriendsIds(Integer id) {
-        log.debug "Getting friend list of profile id=$id..."
-        Thread.sleep(VK_API_REQUEST_DELAY)
-
-        try {
-            def vkRequest
-            if (VK_USER_ID && VK_ACCESS_TOKEN) {
-                vkRequest = vk.friends().get(new UserActor(VK_USER_ID, VK_ACCESS_TOKEN))
-            } else {
-                vkRequest = vk.friends().get()
-            }
-
-            return vkRequest
-                    .userId(id)
-                    .execute()
-                    .items
-        } catch (e) {
-            log.warn("Failed to get friend list of profile id:$id", e)
-            return []
-        }
     }
 }
