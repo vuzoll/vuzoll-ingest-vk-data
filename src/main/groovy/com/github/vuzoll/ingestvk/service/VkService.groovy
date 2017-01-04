@@ -16,6 +16,7 @@ import com.vk.api.sdk.client.Lang
 import com.vk.api.sdk.client.VkApiClient
 import com.vk.api.sdk.client.actors.UserActor
 import com.vk.api.sdk.exceptions.ApiAuthValidationException
+import com.vk.api.sdk.exceptions.ApiUserDeletedException
 import com.vk.api.sdk.httpclient.HttpTransportClient
 import com.vk.api.sdk.objects.base.BaseObject
 import com.vk.api.sdk.objects.base.Country
@@ -92,7 +93,11 @@ class VkService {
                     .execute()
                     .items
         } catch (ApiAuthValidationException e) {
+            log.error("vk validation required - visit $e.redirectUri", e)
             throw new RuntimeException("vk validation required - visit $e.redirectUri", e)
+        } catch (ApiUserDeletedException e) {
+            log.warn("User with id=$id was deactivated", e)
+            return []
         }
     }
 
