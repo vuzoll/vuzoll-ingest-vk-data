@@ -1,13 +1,9 @@
 package com.github.vuzoll.ingestvk.domain
 
 import groovy.transform.EqualsAndHashCode
-import org.springframework.data.annotation.Id
 
 @EqualsAndHashCode(includes = [ 'universityId', 'facultyId', 'graduationYear' ])
 class VkUniversityRecord {
-
-    @Id
-    String id
 
     Integer universityId
     Integer countryId
