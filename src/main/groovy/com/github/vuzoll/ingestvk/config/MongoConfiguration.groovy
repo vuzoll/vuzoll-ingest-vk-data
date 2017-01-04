@@ -7,7 +7,7 @@ import org.springframework.data.mongodb.config.AbstractMongoConfiguration
 import org.springframework.data.mongodb.repository.config.EnableMongoRepositories
 
 @Configuration
-@EnableMongoRepositories
+@EnableMongoRepositories('com.github.vuzoll.ingestvk.repository')
 class MongoConfiguration extends AbstractMongoConfiguration {
 
     static String DATABASE_NAME = System.getenv('INGEST_VK_MONGO_DATABASE_NAME') ?: 'vkIngested'
