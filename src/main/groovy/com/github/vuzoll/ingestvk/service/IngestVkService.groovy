@@ -63,7 +63,7 @@ class IngestVkService {
             }
 
             if (datasetSize == 0) {
-                Integer seedId = ingestRequest.parameters.getOrDefault('seedId', DEFAULT_SEED_ID)
+                Integer seedId = ingestRequest.parameters?.getOrDefault('seedId', DEFAULT_SEED_ID) ?: DEFAULT_SEED_ID
                 log.warn "Dataset is empty. Using seed profile with id=$seedId to initialize it..."
 
                 VkProfile seedProfile = vkService.ingestVkProfileById(seedId)
