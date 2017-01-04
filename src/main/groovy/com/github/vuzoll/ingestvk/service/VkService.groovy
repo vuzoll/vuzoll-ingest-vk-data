@@ -15,6 +15,7 @@ import com.github.vuzoll.ingestvk.domain.VkRelative
 import com.vk.api.sdk.client.Lang
 import com.vk.api.sdk.client.VkApiClient
 import com.vk.api.sdk.client.actors.UserActor
+import com.vk.api.sdk.exceptions.ApiAuthValidationException
 import com.vk.api.sdk.httpclient.HttpTransportClient
 import com.vk.api.sdk.objects.base.BaseObject
 import com.vk.api.sdk.objects.base.Country
@@ -43,19 +44,20 @@ class VkService {
     VkApiClient vk = new VkApiClient(HttpTransportClient.getInstance())
 
     VkProfile ingestVkProfileById(Integer id) {
-        log.debug "Ingesting vk profile by id=$id..."
-        Thread.sleep(VK_API_REQUEST_DELAY)
+        try {
+            log.debug "Ingesting vk profile by id=$id..."
+            Thread.sleep(VK_API_REQUEST_DELAY)
 
-        def vkRequest
-        if (VK_USER_ID && VK_ACCESS_TOKEN) {
-            vkRequest = vk.users().get(new UserActor(VK_USER_ID, VK_ACCESS_TOKEN))
-        } else {
-            vkRequest = vk.users().get()
-        }
+            def vkRequest
+            if (VK_USER_ID && VK_ACCESS_TOKEN) {
+                vkRequest = vk.users().get(new UserActor(VK_USER_ID, VK_ACCESS_TOKEN))
+            } else {
+                vkRequest = vk.users().get()
+            }
 
-        UserFull vkApiUser = vkRequest
-                .userIds(id.toString())
-                .fields(
+            UserFull vkApiUser = vkRequest
+                    .userIds(id.toString())
+                    .fields(
                     UserField.ABOUT,     UserField.ACTIVITIES, UserField.BDATE,        UserField.BOOKS,
                     UserField.CAREER,    UserField.CITY,       UserField.CONNECTIONS,  UserField.CONTACTS,
                     UserField.COUNTRY,   UserField.DOMAIN,     UserField.EDUCATION,    UserField.GAMES,
@@ -63,11 +65,35 @@ class VkService {
                     UserField.MOVIES,    UserField.MUSIC,      UserField.OCCUPATION,   UserField.PERSONAL,
                     UserField.QUOTES,    UserField.RELATIVES,  UserField.RELATION,     UserField.SCHOOLS,
                     UserField.SEX,       UserField.TV,         UserField.UNIVERSITIES, UserField.VERIFIED
-                )
-                .lang(Lang.UA)
-                .execute().get(0)
+            )
+                    .lang(Lang.UA)
+                    .execute().get(0)
 
-        return toVkProfile(vkApiUser)
+            return toVkProfile(vkApiUser)
+        } catch (ApiAuthValidationException e) {
+            throw new RuntimeException("vk validation required - visit $e.redirectUri", e)
+        }
+    }
+
+    Collection<Integer> getFriendsIds(Integer id) {
+        try {
+            log.debug "Getting friend list of profile id=$id..."
+            Thread.sleep(VK_API_REQUEST_DELAY)
+
+            def vkRequest
+            if (VK_USER_ID && VK_ACCESS_TOKEN) {
+                vkRequest = vk.friends().get(new UserActor(VK_USER_ID, VK_ACCESS_TOKEN))
+            } else {
+                vkRequest = vk.friends().get()
+            }
+
+            return vkRequest
+                    .userId(id)
+                    .execute()
+                    .items
+        } catch (ApiAuthValidationException e) {
+            throw new RuntimeException("vk validation required - visit $e.redirectUri", e)
+        }
     }
 
     private VkProfile toVkProfile(UserFull vkApiUser) {
@@ -254,27 +280,5 @@ class VkService {
         vkRelationPartner.lastName = vkApiRelationPartner.lastName
 
         return vkRelationPartner
-    }
-
-    Collection<Integer> getFriendsIds(Integer id) {
-        log.debug "Getting friend list of profile id=$id..."
-        Thread.sleep(VK_API_REQUEST_DELAY)
-
-        try {
-            def vkRequest
-            if (VK_USER_ID && VK_ACCESS_TOKEN) {
-                vkRequest = vk.friends().get(new UserActor(VK_USER_ID, VK_ACCESS_TOKEN))
-            } else {
-                vkRequest = vk.friends().get()
-            }
-
-            return vkRequest
-                    .userId(id)
-                    .execute()
-                    .items
-        } catch (e) {
-            log.warn("Failed to get friend list of profile id:$id", e)
-            return []
-        }
     }
 }
