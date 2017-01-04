@@ -71,7 +71,7 @@ class IngestVkService {
                 continue
             }
 
-            int randomVkProfileIndex = RandomUtils.nextInt(0, datasetSize)
+            int randomVkProfileIndex = RandomUtils.nextInt(0, datasetSize as int)
             VkProfile randomVkProfile = vkProfileRepository.findAll(new PageRequest(randomVkProfileIndex, 1)).content.first()
 
             log.info "Using profile with id=$randomVkProfile.vkId for the next ingestion iteration..."
