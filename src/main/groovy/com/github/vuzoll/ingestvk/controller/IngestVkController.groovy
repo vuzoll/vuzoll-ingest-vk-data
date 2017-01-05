@@ -39,7 +39,7 @@ class IngestVkController {
         ingestJobsService.jobStatus(jobId)
     }
 
-    @GetMapping(path = '/ingest/?')
+    @GetMapping(path = '/ingest/all')
     @ResponseBody List<IngestJob> allJobsStatus() {
         ingestJobsService.allJobs()
     }

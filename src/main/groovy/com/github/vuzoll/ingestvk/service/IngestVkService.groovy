@@ -1,6 +1,5 @@
 package com.github.vuzoll.ingestvk.service
 
-
 import com.github.vuzoll.ingestvk.domain.job.IngestJob
 import com.github.vuzoll.ingestvk.domain.vk.VkProfile
 import com.github.vuzoll.ingestvk.repository.job.IngestJobRepository
@@ -46,6 +45,7 @@ class IngestVkService {
         while (true) {
             ingestJob = ingestJobRepository.findOne(ingestJob.id)
             ingestJob.datasetSize = vkProfileRepository.count() as Integer
+            ingestJob.timeTaken = toDurationString(System.currentTimeMillis() - ingestJob.startTimestamp)
             ingestJobRepository.save ingestJob
 
             log.info "Ingestion already has taken ${toDurationString(System.currentTimeMillis() - ingestJob.startTimestamp)}"
