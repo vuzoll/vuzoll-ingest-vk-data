@@ -63,37 +63,37 @@ class IngestVkService {
 
                 ingestJobRepository.save ingestJob
 
-                log.info "Ingestion already has taken ${toDurationString(System.currentTimeMillis() - ingestJob.startTimestamp)}"
-                log.info "Current dataset size: ${ingestJob.datasetSize} records"
-                log.info "Already ingested: ${ingestJob.ingestedCount} records"
+                log.info "JobId=${ingestJob.id}: ingestion already has taken ${toDurationString(System.currentTimeMillis() - ingestJob.startTimestamp)}"
+                log.info "JobId=${ingestJob.id}: current dataset size is ${ingestJob.datasetSize} records"
+                log.info "JobId=${ingestJob.id}: already ingested ${ingestJob.ingestedCount} records"
 
                 if (ingestJob.request.timeLimit != null && System.currentTimeMillis() >= ingestJob.startTimestamp + fromDurationString(ingestJob.request.timeLimit)) {
-                    ingestJob.message = 'Time limit is reached'
-                    log.info ingestJob.message
+                    ingestJob.message = 'time limit is reached'
+                    log.info "JobId=${ingestJob.id}: ${ingestJob.message}"
                     break
                 }
 
                 if (ingestJob.request.dataSizeLimit != null && ingestJob.datasetSize >= ingestJob.request.dataSizeLimit) {
-                    ingestJob.message = 'Dataset size limit is reached'
-                    log.info ingestJob.message
+                    ingestJob.message = 'dataset size limit is reached'
+                    log.info "JobId=${ingestJob.id}: ${ingestJob.message}"
                     break
                 }
 
                 if (ingestJob.request.ingestedLimit != null && ingestJob.ingestedCount >= ingestJob.request.ingestedLimit) {
-                    ingestJob.message = 'Ingested records limit is reached'
-                    log.info ingestJob.message
+                    ingestJob.message = 'ingested records limit is reached'
+                    log.info "JobId=${ingestJob.id}: ${ingestJob.message}"
                     break
                 }
 
                 if (ingestJob.status == JobStatus.STOPPING.toString()) {
-                    ingestJob.message = 'Stopped by client request'
-                    log.info ingestJob.message
+                    ingestJob.message = 'stopped by client request'
+                    log.info "JobId=${ingestJob.id}: ${ingestJob.message}"
                     break
                 }
 
                 if (ingestJob.datasetSize == 0) {
                     Integer seedId = ingestJob.request.parameters?.getOrDefault('seedId', DEFAULT_SEED_ID) ?: DEFAULT_SEED_ID
-                    log.warn "Dataset is empty. Using seed profile with id=$seedId to initialize it..."
+                    log.warn "JobId=${ingestJob.id}: dataset is empty - using seed profile with id=$seedId to initialize it..."
 
                     VkProfile seedProfile = vkService.ingestVkProfileById(seedId)
                     vkProfileRepository.save seedProfile
@@ -103,11 +103,11 @@ class IngestVkService {
                 int randomVkProfileIndex = RandomUtils.nextInt(0, ingestJob.datasetSize)
                 VkProfile randomVkProfile = vkProfileRepository.findAll(new PageRequest(randomVkProfileIndex, 1)).content.first()
 
-                log.info "Using profile with id=$randomVkProfile.vkId for the next ingestion iteration..."
+                log.info "JobId=${ingestJob.id}: using profile with id=$randomVkProfile.vkId for the next ingestion iteration..."
                 randomVkProfile.friendsIds.findAll({ Integer friendVkId ->
                     vkProfileRepository.countByVkId(friendVkId) == 0
                 }).each({ Integer friendVkId ->
-                    log.info "Found new profile with id=$friendVkId"
+                    log.info "JobId=${ingestJob.id}: found new profile with id=$friendVkId"
                     ingestJob.ingestedCount++
 
                     VkProfile newProfile = vkService.ingestVkProfileById(friendVkId)
@@ -121,9 +121,9 @@ class IngestVkService {
             ingestJob.status = JobStatus.COMPLETED.toString()
             ingestJobRepository.save ingestJob
         } catch (e) {
-            log.error('Ingestion failed', e)
+            log.error("JobId=${ingestJob.id}: ingestion failed", e)
 
-            ingestJob.message = "Failed because of $e.class, with message: $e.message"
+            ingestJob.message = "Failed because of ${e.class.name}, with message: ${e.message}"
             ingestJob.endTime = LocalDateTime.now().toString()
             ingestJob.lastUpdateTime = ingestJob.endTime
             ingestJob.timeTaken = toDurationString(System.currentTimeMillis() - ingestJob.startTimestamp)
