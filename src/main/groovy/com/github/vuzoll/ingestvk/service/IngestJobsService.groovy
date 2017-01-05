@@ -39,7 +39,7 @@ class IngestJobsService {
     }
 
     IngestJob getCurrentlyRunningJob() {
-        Collection<IngestJob> currentlyRunningJobs = ingestJobRepository.findByStatus(JobStatus.RUNNING.toString())
+        Collection<IngestJob> currentlyRunningJobs = ingestJobRepository.findByStatus(JobStatus.RUNNING.toString()) + ingestJobRepository.findByStatus(JobStatus.STOPPING.toString())
 
         if (currentlyRunningJobs.empty) {
             return null
@@ -82,5 +82,9 @@ class IngestJobsService {
 
     List<IngestJob> allJobs() {
         ingestJobRepository.findAll(new Sort(Sort.Direction.DESC, 'startTimestamp'))
+    }
+
+    IngestJob getLastJob() {
+        ingestJobRepository.findAll(new Sort(Sort.Direction.DESC, 'startTimestamp')).first()
     }
 }

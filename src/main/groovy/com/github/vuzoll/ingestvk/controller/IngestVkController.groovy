@@ -53,6 +53,14 @@ class IngestVkController {
         return ingestJob
     }
 
+    @GetMapping(path = '/ingest/last')
+    @ResponseBody IngestJob lastJobStatus() {
+        IngestJob ingestJob = ingestJobsService.getLastJob()
+        ingestJob.ingestJobLogs = ingestJob.ingestJobLogs.sort({ -it.timestamp }).take(20)
+
+        return ingestJob
+    }
+
     @DeleteMapping(path = '/ingest/{jobId}')
     @ResponseBody IngestJob stopJob(@PathVariable String jobId) {
         IngestJob ingestJob = ingestJobsService.stopJob(jobId)

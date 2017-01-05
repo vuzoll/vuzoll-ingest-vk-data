@@ -49,8 +49,10 @@ class IngestVkService {
             ingestJobRepository.save ingestJob
 
             while (true) {
+                int ingestedCount = ingestJob.ingestedCount
                 ingestJob = ingestJobRepository.findOne(ingestJob.id)
 
+                ingestJob.ingestedCount = ingestedCount
                 ingestJob.datasetSize = vkProfileRepository.count() as Integer
                 ingestJob.lastUpdateTime = LocalDateTime.now().toString()
                 ingestJob.timeTaken = toDurationString(System.currentTimeMillis() - ingestJob.startTimestamp)
@@ -144,10 +146,11 @@ class IngestVkService {
     }
 
     static String toDurationString(long duration) {
-        if (duration == 0) {
-            return "0sec"
+        String durationString = TIME_LIMIT_FORMAT.print(new Period(duration))
+        if (durationString.empty) {
+            return '0sec'
         } else {
-            return TIME_LIMIT_FORMAT.print(new Period(duration))
+            return durationString
         }
     }
 }
