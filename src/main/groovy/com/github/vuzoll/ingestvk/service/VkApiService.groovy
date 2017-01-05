@@ -1,17 +1,17 @@
 package com.github.vuzoll.ingestvk.service
 
-import com.github.vuzoll.ingestvk.domain.VkCity
-import com.github.vuzoll.ingestvk.domain.VkCountry
-import com.github.vuzoll.ingestvk.domain.VkRelationPartner
-import com.github.vuzoll.ingestvk.domain.VkSchoolRecord
-import com.github.vuzoll.ingestvk.domain.VkUniversityRecord
+import com.github.vuzoll.ingestvk.domain.vk.VkCity
+import com.github.vuzoll.ingestvk.domain.vk.VkCountry
+import com.github.vuzoll.ingestvk.domain.vk.VkRelationPartner
+import com.github.vuzoll.ingestvk.domain.vk.VkSchoolRecord
+import com.github.vuzoll.ingestvk.domain.vk.VkUniversityRecord
 
-import com.github.vuzoll.ingestvk.domain.VkCareerRecord
-import com.github.vuzoll.ingestvk.domain.VkMilitaryRecord
-import com.github.vuzoll.ingestvk.domain.VkOccupation
-import com.github.vuzoll.ingestvk.domain.VkPersonalBelief
-import com.github.vuzoll.ingestvk.domain.VkProfile
-import com.github.vuzoll.ingestvk.domain.VkRelative
+import com.github.vuzoll.ingestvk.domain.vk.VkCareerRecord
+import com.github.vuzoll.ingestvk.domain.vk.VkMilitaryRecord
+import com.github.vuzoll.ingestvk.domain.vk.VkOccupation
+import com.github.vuzoll.ingestvk.domain.vk.VkPersonalBelief
+import com.github.vuzoll.ingestvk.domain.vk.VkProfile
+import com.github.vuzoll.ingestvk.domain.vk.VkRelative
 import com.vk.api.sdk.client.Lang
 import com.vk.api.sdk.client.VkApiClient
 import com.vk.api.sdk.client.actors.UserActor
@@ -35,7 +35,7 @@ import org.springframework.stereotype.Service
 
 @Service
 @Slf4j
-class VkService {
+class VkApiService {
 
     static Integer VK_USER_ID = System.getenv('INGEST_VK_USER_ID') ? Integer.parseInt(System.getenv('INGEST_VK_USER_ID')) : null
     static String VK_ACCESS_TOKEN = System.getenv('INGEST_VK_ACCESS_TOKEN')
