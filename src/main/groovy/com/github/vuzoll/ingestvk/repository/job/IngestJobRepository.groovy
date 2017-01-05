@@ -7,5 +7,5 @@ interface IngestJobRepository extends PagingAndSortingRepository<IngestJob, Stri
 
     Collection<IngestJob> findByStatus(String status)
 
-    List<IngestJob> findAllSortByStartTimestampDesc()
+    List<IngestJob> findAllOrderByStartTimestampDesc()
 }
