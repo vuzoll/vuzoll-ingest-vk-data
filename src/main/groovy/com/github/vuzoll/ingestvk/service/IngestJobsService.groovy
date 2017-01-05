@@ -2,6 +2,7 @@ package com.github.vuzoll.ingestvk.service
 
 import com.github.vuzoll.ingestvk.controller.IngestRequest
 import com.github.vuzoll.ingestvk.domain.job.IngestJob
+import com.github.vuzoll.ingestvk.domain.job.JobStatus
 import com.github.vuzoll.ingestvk.repository.job.IngestJobRepository
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
@@ -26,18 +27,18 @@ class IngestJobsService {
     @PostConstruct
     void markAbortedJobs() {
         log.info 'Marking all aborted jobs...'
-        Collection<IngestJob> abortedJobs = ingestJobRepository.findByStatus('RUNNING')
+        Collection<IngestJob> abortedJobs = ingestJobRepository.findByStatus(JobStatus.RUNNING.toString())
         if (abortedJobs.empty) {
             log.info 'Found no aborted jobs'
         } else {
             log.warn "Found ${abortedJobs.size()} aborted jobs"
-            abortedJobs.each { it.status = 'ABORTED' }
+            abortedJobs.each { it.status = JobStatus.ABORTED.toString() }
             ingestJobRepository.save(abortedJobs)
         }
     }
 
     IngestJob getCurrentlyRunningJob() {
-        Collection<IngestJob> currentlyRunningJobs = ingestJobRepository.findByStatus('RUNNING')
+        Collection<IngestJob> currentlyRunningJobs = ingestJobRepository.findByStatus(JobStatus.RUNNING.toString())
 
         if (currentlyRunningJobs.empty) {
             return null
@@ -55,7 +56,7 @@ class IngestJobsService {
         if (ingestRequest.method == 'randomized-bfs') {
             IngestJob startedJob = new IngestJob()
             startedJob.request = ingestRequest
-            startedJob.status = 'RUNNING'
+            startedJob.status = JobStatus.RUNNING.toString()
 
             startedJob = ingestJobRepository.save startedJob
 
@@ -74,7 +75,7 @@ class IngestJobsService {
 
     IngestJob stopJob(String jobId) {
         IngestJob ingestJob = ingestJobRepository.findOne(jobId)
-        ingestJob.status = 'STOPPED'
+        ingestJob.status = JobStatus.STOPPING.toString()
         ingestJobRepository.save ingestJob
     }
 
