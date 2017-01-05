@@ -79,6 +79,6 @@ class IngestJobsService {
     }
 
     List<IngestJob> allJobs() {
-        ingestJobRepository.findAll()
+        ingestJobRepository.findAllSortByStartTimestampDesc()
     }
 }

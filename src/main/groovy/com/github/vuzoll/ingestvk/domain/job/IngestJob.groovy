@@ -13,6 +13,8 @@ class IngestJob {
     Long startTimestamp
     String startTime
 
+    String lastUpdateTime
+
     String endTime
     String timeTaken
 
@@ -21,4 +23,6 @@ class IngestJob {
 
     Integer ingestedCount
     Integer datasetSize
+
+    List<IngestJobLog> ingestJobLogs
 }

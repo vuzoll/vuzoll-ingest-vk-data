@@ -1,6 +1,7 @@
 package com.github.vuzoll.ingestvk.service
 
 import com.github.vuzoll.ingestvk.domain.job.IngestJob
+import com.github.vuzoll.ingestvk.domain.job.IngestJobLog
 import com.github.vuzoll.ingestvk.domain.vk.VkProfile
 import com.github.vuzoll.ingestvk.repository.job.IngestJobRepository
 import com.github.vuzoll.ingestvk.repository.vk.VkProfileRepository
@@ -44,8 +45,20 @@ class IngestVkService {
 
         while (true) {
             ingestJob = ingestJobRepository.findOne(ingestJob.id)
+
             ingestJob.datasetSize = vkProfileRepository.count() as Integer
+            ingestJob.lastUpdateTime = LocalDateTime.now().toString()
             ingestJob.timeTaken = toDurationString(System.currentTimeMillis() - ingestJob.startTimestamp)
+
+            IngestJobLog ingestJobLog = new IngestJobLog()
+            ingestJobLog.timestamp = System.currentTimeMillis()
+            ingestJobLog.time = LocalDateTime.now().toString()
+            ingestJobLog.timeTaken = ingestJob.timeTaken
+            ingestJobLog.status = ingestJob.status
+            ingestJobLog.datasetSize = ingestJob.datasetSize
+            ingestJobLog.ingestedCount = ingestJob.ingestedCount
+            ingestJob.ingestJobLogs = ingestJob.ingestJobLogs.empty ? [ ingestJobLog ] : ingestJob.ingestJobLogs + ingestJobLog
+
             ingestJobRepository.save ingestJob
 
             log.info "Ingestion already has taken ${toDurationString(System.currentTimeMillis() - ingestJob.startTimestamp)}"
@@ -93,6 +106,7 @@ class IngestVkService {
                 vkProfileRepository.countByVkId(friendVkId) == 0
             }).each({ Integer friendVkId ->
                 log.info "Found new profile with id=$friendVkId"
+                ingestJob.ingestedCount++
 
                 VkProfile newProfile = vkService.ingestVkProfileById(friendVkId)
                 vkProfileRepository.save newProfile
