@@ -55,7 +55,7 @@ class IngestVkService {
                 ingestJob.lastUpdateTime = LocalDateTime.now().toString()
                 ingestJob.timeTaken = toDurationString(System.currentTimeMillis() - ingestJob.startTimestamp)
 
-                if (ingestJob.ingestJobLogs.empty || System.currentTimeMillis() - ingestJob.ingestJobLogs.timestamp.max() > LOG_DELTA) {
+                if (ingestJob.ingestJobLogs == null || ingestJob.ingestJobLogs.empty || System.currentTimeMillis() - ingestJob.ingestJobLogs.timestamp.max() > LOG_DELTA) {
                     IngestJobLog ingestJobLog = new IngestJobLog()
                     ingestJobLog.timestamp = System.currentTimeMillis()
                     ingestJobLog.time = LocalDateTime.now().toString()
@@ -63,7 +63,7 @@ class IngestVkService {
                     ingestJobLog.status = ingestJob.status
                     ingestJobLog.datasetSize = ingestJob.datasetSize
                     ingestJobLog.ingestedCount = ingestJob.ingestedCount
-                    ingestJob.ingestJobLogs = ingestJob.ingestJobLogs.empty ? [ ingestJobLog ] : ingestJob.ingestJobLogs + ingestJobLog
+                    ingestJob.ingestJobLogs = ingestJob.ingestJobLogs == null ? [ ingestJobLog ] : ingestJob.ingestJobLogs + ingestJobLog
                 }
 
                 ingestJobRepository.save ingestJob
