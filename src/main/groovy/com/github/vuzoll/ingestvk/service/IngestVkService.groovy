@@ -1,9 +1,11 @@
 package com.github.vuzoll.ingestvk.service
 
-import com.github.vuzoll.ingestvk.controller.IngestRequest
-import com.github.vuzoll.ingestvk.controller.IngestResponse
-import com.github.vuzoll.ingestvk.domain.VkProfile
-import com.github.vuzoll.ingestvk.repository.VkProfileRepository
+import com.github.vuzoll.ingestvk.domain.job.IngestJob
+import com.github.vuzoll.ingestvk.domain.job.IngestJobLog
+import com.github.vuzoll.ingestvk.domain.job.JobStatus
+import com.github.vuzoll.ingestvk.domain.vk.VkProfile
+import com.github.vuzoll.ingestvk.repository.job.IngestJobRepository
+import com.github.vuzoll.ingestvk.repository.vk.VkProfileRepository
 import groovy.util.logging.Slf4j
 import org.apache.commons.lang3.RandomUtils
 import org.joda.time.Period
@@ -13,11 +15,16 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.domain.PageRequest
 import org.springframework.stereotype.Service
 
+import java.time.LocalDateTime
+import java.util.concurrent.TimeUnit
+
 @Service
 @Slf4j
 class IngestVkService {
 
-    static Integer DEFAULT_SEED_ID = Integer.parseInt(System.getenv('INGEST_VK_DEFAULT_SEED_ID') ?: '3542756')
+    static final long LOG_DELTA = TimeUnit.HOURS.toMillis(1)
+
+    static final Integer DEFAULT_SEED_ID = Integer.parseInt(System.getenv('INGEST_VK_DEFAULT_SEED_ID') ?: '3542756')
 
     static final PeriodFormatter TIME_LIMIT_FORMAT = new PeriodFormatterBuilder()
             .appendHours().appendSuffix('h')
@@ -29,63 +36,109 @@ class IngestVkService {
     VkProfileRepository vkProfileRepository
 
     @Autowired
-    VkService vkService
+    IngestJobRepository ingestJobRepository
 
-    IngestResponse randomizedBfsIngest(IngestRequest ingestRequest) {
-        long startTime = System.currentTimeMillis()
-        int ingestedCount = 0
+    @Autowired
+    VkApiService vkService
 
-        String message
+    void randomizedBfsIngest(IngestJob ingestJob) {
+        try {
+            ingestJob.startTimestamp = System.currentTimeMillis()
+            ingestJob.startTime = LocalDateTime.now().toString()
+            ingestJob.ingestedCount = 0
+            ingestJobRepository.save ingestJob
 
-        while (true) {
-            long datasetSize = vkProfileRepository.count()
+            while (true) {
+                int ingestedCount = ingestJob.ingestedCount
+                ingestJob = ingestJobRepository.findOne(ingestJob.id)
 
-            log.info "Ingestion already has taken ${toDurationString(System.currentTimeMillis() - startTime)}"
-            log.info "Current dataset size: ${datasetSize} records"
-            log.info "Already ingested: ${ingestedCount} records"
+                ingestJob.ingestedCount = ingestedCount
+                ingestJob.datasetSize = vkProfileRepository.count() as Integer
+                ingestJob.lastUpdateTime = LocalDateTime.now().toString()
+                ingestJob.timeTaken = toDurationString(System.currentTimeMillis() - ingestJob.startTimestamp)
 
-            if (ingestRequest.timeLimit != null && System.currentTimeMillis() >= startTime + fromDurationString(ingestRequest.timeLimit)) {
-                message = 'Time limit is reached'
-                log.info message
-                break
+                if (ingestJob.ingestJobLogs == null || ingestJob.ingestJobLogs.empty || System.currentTimeMillis() - ingestJob.ingestJobLogs.timestamp.max() > LOG_DELTA) {
+                    IngestJobLog ingestJobLog = new IngestJobLog()
+                    ingestJobLog.timestamp = System.currentTimeMillis()
+                    ingestJobLog.time = LocalDateTime.now().toString()
+                    ingestJobLog.timeTaken = ingestJob.timeTaken
+                    ingestJobLog.status = ingestJob.status
+                    ingestJobLog.datasetSize = ingestJob.datasetSize
+                    ingestJobLog.ingestedCount = ingestJob.ingestedCount
+                    ingestJob.ingestJobLogs = ingestJob.ingestJobLogs == null ? [ ingestJobLog ] : ingestJob.ingestJobLogs + ingestJobLog
+                }
+
+                ingestJobRepository.save ingestJob
+
+                log.info "JobId=${ingestJob.id}: ingestion already has taken ${toDurationString(System.currentTimeMillis() - ingestJob.startTimestamp)}"
+                log.info "JobId=${ingestJob.id}: current dataset size is ${ingestJob.datasetSize} records"
+                log.info "JobId=${ingestJob.id}: already ingested ${ingestJob.ingestedCount} records"
+
+                if (ingestJob.request.timeLimit != null && System.currentTimeMillis() >= ingestJob.startTimestamp + fromDurationString(ingestJob.request.timeLimit)) {
+                    ingestJob.message = 'time limit is reached'
+                    log.info "JobId=${ingestJob.id}: ${ingestJob.message}"
+                    break
+                }
+
+                if (ingestJob.request.dataSizeLimit != null && ingestJob.datasetSize >= ingestJob.request.dataSizeLimit) {
+                    ingestJob.message = 'dataset size limit is reached'
+                    log.info "JobId=${ingestJob.id}: ${ingestJob.message}"
+                    break
+                }
+
+                if (ingestJob.request.ingestedLimit != null && ingestJob.ingestedCount >= ingestJob.request.ingestedLimit) {
+                    ingestJob.message = 'ingested records limit is reached'
+                    log.info "JobId=${ingestJob.id}: ${ingestJob.message}"
+                    break
+                }
+
+                if (ingestJob.status == JobStatus.STOPPING.toString()) {
+                    ingestJob.message = 'stopped by client request'
+                    log.info "JobId=${ingestJob.id}: ${ingestJob.message}"
+                    break
+                }
+
+                if (ingestJob.datasetSize == 0) {
+                    Integer seedId = ingestJob.request.parameters?.getOrDefault('seedId', DEFAULT_SEED_ID) ?: DEFAULT_SEED_ID
+                    log.warn "JobId=${ingestJob.id}: dataset is empty - using seed profile with id=$seedId to initialize it..."
+
+                    VkProfile seedProfile = vkService.ingestVkProfileById(seedId)
+                    vkProfileRepository.save seedProfile
+                    continue
+                }
+
+                int randomVkProfileIndex = RandomUtils.nextInt(0, ingestJob.datasetSize)
+                VkProfile randomVkProfile = vkProfileRepository.findAll(new PageRequest(randomVkProfileIndex, 1)).content.first()
+
+                log.info "JobId=${ingestJob.id}: using profile with id=$randomVkProfile.vkId for the next ingestion iteration..."
+                randomVkProfile.friendsIds.findAll({ Integer friendVkId ->
+                    vkProfileRepository.countByVkId(friendVkId) == 0
+                }).each({ Integer friendVkId ->
+                    log.info "JobId=${ingestJob.id}: found new profile with id=$friendVkId"
+                    ingestJob.ingestedCount++
+
+                    VkProfile newProfile = vkService.ingestVkProfileById(friendVkId)
+                    vkProfileRepository.save newProfile
+                })
             }
 
-            if (ingestRequest.dataSizeLimit != null && datasetSize >= ingestRequest.dataSizeLimit) {
-                message = 'Dataset size limit is reached'
-                log.info message
-                break
-            }
+            ingestJob.endTime = LocalDateTime.now().toString()
+            ingestJob.lastUpdateTime = ingestJob.endTime
+            ingestJob.timeTaken = toDurationString(System.currentTimeMillis() - ingestJob.startTimestamp)
+            ingestJob.status = JobStatus.COMPLETED.toString()
+            ingestJobRepository.save ingestJob
+        } catch (e) {
+            log.error("JobId=${ingestJob.id}: ingestion failed", e)
 
-            if (ingestRequest.ingestedLimit != null && ingestedCount >= ingestRequest.ingestedLimit) {
-                message = 'Ingested records limit is reached'
-                log.info message
-                break
-            }
+            ingestJob.message = "Failed because of ${e.class.name}, with message: ${e.message}"
+            ingestJob.endTime = LocalDateTime.now().toString()
+            ingestJob.lastUpdateTime = ingestJob.endTime
+            ingestJob.timeTaken = toDurationString(System.currentTimeMillis() - ingestJob.startTimestamp)
+            ingestJob.status = JobStatus.FAILED.toString()
+            ingestJobRepository.save ingestJob
 
-            if (datasetSize == 0) {
-                Integer seedId = ingestRequest.parameters?.getOrDefault('seedId', DEFAULT_SEED_ID) ?: DEFAULT_SEED_ID
-                log.warn "Dataset is empty. Using seed profile with id=$seedId to initialize it..."
-
-                VkProfile seedProfile = vkService.ingestVkProfileById(seedId)
-                vkProfileRepository.save seedProfile
-                continue
-            }
-
-            int randomVkProfileIndex = RandomUtils.nextInt(0, datasetSize as int)
-            VkProfile randomVkProfile = vkProfileRepository.findAll(new PageRequest(randomVkProfileIndex, 1)).content.first()
-
-            log.info "Using profile with id=$randomVkProfile.vkId for the next ingestion iteration..."
-            randomVkProfile.friendsIds.findAll({ Integer friendVkId ->
-                vkProfileRepository.countByVkId(friendVkId) == 0
-            }).each({ Integer friendVkId ->
-                log.info "Found new profile with id=$friendVkId"
-
-                VkProfile newProfile = vkService.ingestVkProfileById(friendVkId)
-                vkProfileRepository.save newProfile
-            })
+            throw e
         }
-
-        return new IngestResponse(timeTaken: toDurationString(System.currentTimeMillis() - startTime), recordsIngested: ingestedCount, recordsCount: vkProfileRepository.count(), message: message)
     }
 
     static long fromDurationString(String durationAsString) {
@@ -93,6 +146,11 @@ class IngestVkService {
     }
 
     static String toDurationString(long duration) {
-        TIME_LIMIT_FORMAT.print(new Period(duration))
+        String durationString = TIME_LIMIT_FORMAT.print(new Period(duration))
+        if (durationString.empty) {
+            return '0sec'
+        } else {
+            return durationString
+        }
     }
 }

@@ -1,6 +1,6 @@
-package com.github.vuzoll.ingestvk.repository
+package com.github.vuzoll.ingestvk.repository.vk
 
-import com.github.vuzoll.ingestvk.domain.VkProfile
+import com.github.vuzoll.ingestvk.domain.vk.VkProfile
 import org.springframework.data.repository.PagingAndSortingRepository
 
 interface VkProfileRepository extends PagingAndSortingRepository<VkProfile, String> {
