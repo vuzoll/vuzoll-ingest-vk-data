@@ -37,7 +37,7 @@ class IngestJobsService {
     }
 
     IngestJob getCurrentlyRunningJob() {
-        ingestJobRepository.countByStatus('RUNNING') != 0
+        ingestJobRepository.findByStatus('RUNNING').first()
     }
 
     IngestJob startNewIngestJob(IngestRequest ingestRequest) {
@@ -65,5 +65,9 @@ class IngestJobsService {
         IngestJob ingestJob = ingestJobRepository.findOne(jobId)
         ingestJob.status = 'STOPPED'
         ingestJobRepository.save ingestJob
+    }
+
+    List<IngestJob> allJobs() {
+        ingestJobRepository.findAll()
     }
 }

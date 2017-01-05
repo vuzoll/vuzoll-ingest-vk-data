@@ -39,6 +39,16 @@ class IngestVkController {
         ingestJobsService.jobStatus(jobId)
     }
 
+    @GetMapping(path = '/ingest/?')
+    @ResponseBody List<IngestJob> allJobsStatus() {
+        ingestJobsService.allJobs()
+    }
+
+    @GetMapping(path = '/ingest/current')
+    @ResponseBody IngestJob currentJobStatus() {
+        ingestJobsService.getCurrentlyRunningJob()
+    }
+
     @DeleteMapping(path = '/ingest/{jobId}')
     @ResponseBody IngestJob stopJob(@PathVariable String jobId) {
         ingestJobsService.stopJob(jobId)

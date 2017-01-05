@@ -6,6 +6,4 @@ import org.springframework.data.repository.PagingAndSortingRepository
 interface IngestJobRepository extends PagingAndSortingRepository<IngestJob, String> {
 
     Collection<IngestJob> findByStatus(String status)
-
-    Long countByStatus(String status)
 }
