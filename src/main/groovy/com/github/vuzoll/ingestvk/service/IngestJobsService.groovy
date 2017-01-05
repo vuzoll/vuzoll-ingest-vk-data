@@ -7,6 +7,7 @@ import com.github.vuzoll.ingestvk.repository.job.IngestJobRepository
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.core.task.TaskExecutor
+import org.springframework.data.domain.Sort
 import org.springframework.stereotype.Service
 
 import javax.annotation.PostConstruct
@@ -80,6 +81,6 @@ class IngestJobsService {
     }
 
     List<IngestJob> allJobs() {
-        ingestJobRepository.findAllOrderByStartTimestampDesc()
+        ingestJobRepository.findAll(new Sort(Sort.Direction.DESC, 'startTimestamp'))
     }
 }

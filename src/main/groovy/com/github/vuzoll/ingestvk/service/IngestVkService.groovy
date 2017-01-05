@@ -16,12 +16,15 @@ import org.springframework.data.domain.PageRequest
 import org.springframework.stereotype.Service
 
 import java.time.LocalDateTime
+import java.util.concurrent.TimeUnit
 
 @Service
 @Slf4j
 class IngestVkService {
 
-    static Integer DEFAULT_SEED_ID = Integer.parseInt(System.getenv('INGEST_VK_DEFAULT_SEED_ID') ?: '3542756')
+    static final long LOG_DELTA = TimeUnit.HOURS.toMillis(1)
+
+    static final Integer DEFAULT_SEED_ID = Integer.parseInt(System.getenv('INGEST_VK_DEFAULT_SEED_ID') ?: '3542756')
 
     static final PeriodFormatter TIME_LIMIT_FORMAT = new PeriodFormatterBuilder()
             .appendHours().appendSuffix('h')
@@ -52,14 +55,16 @@ class IngestVkService {
                 ingestJob.lastUpdateTime = LocalDateTime.now().toString()
                 ingestJob.timeTaken = toDurationString(System.currentTimeMillis() - ingestJob.startTimestamp)
 
-                IngestJobLog ingestJobLog = new IngestJobLog()
-                ingestJobLog.timestamp = System.currentTimeMillis()
-                ingestJobLog.time = LocalDateTime.now().toString()
-                ingestJobLog.timeTaken = ingestJob.timeTaken
-                ingestJobLog.status = ingestJob.status
-                ingestJobLog.datasetSize = ingestJob.datasetSize
-                ingestJobLog.ingestedCount = ingestJob.ingestedCount
-                ingestJob.ingestJobLogs = ingestJob.ingestJobLogs.empty ? [ ingestJobLog ] : ingestJob.ingestJobLogs + ingestJobLog
+                if (ingestJob.ingestJobLogs.empty || System.currentTimeMillis() - ingestJob.ingestJobLogs.timestamp.max() > LOG_DELTA) {
+                    IngestJobLog ingestJobLog = new IngestJobLog()
+                    ingestJobLog.timestamp = System.currentTimeMillis()
+                    ingestJobLog.time = LocalDateTime.now().toString()
+                    ingestJobLog.timeTaken = ingestJob.timeTaken
+                    ingestJobLog.status = ingestJob.status
+                    ingestJobLog.datasetSize = ingestJob.datasetSize
+                    ingestJobLog.ingestedCount = ingestJob.ingestedCount
+                    ingestJob.ingestJobLogs = ingestJob.ingestJobLogs.empty ? [ ingestJobLog ] : ingestJob.ingestJobLogs + ingestJobLog
+                }
 
                 ingestJobRepository.save ingestJob
 

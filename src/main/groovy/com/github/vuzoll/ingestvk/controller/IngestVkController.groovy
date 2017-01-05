@@ -35,7 +35,7 @@ class IngestVkController {
     @GetMapping(path = '/ingest/{jobId}')
     @ResponseBody IngestJob jobStatus(@PathVariable String jobId) {
         IngestJob ingestJob = ingestJobsService.jobStatus(jobId)
-        ingestJob.ingestJobLogs = ingestJob.ingestJobLogs.sort({ -it.timestamp })
+        ingestJob.ingestJobLogs = ingestJob.ingestJobLogs.sort({ -it.timestamp }).take(20)
 
         return ingestJob
     }
@@ -48,7 +48,7 @@ class IngestVkController {
     @GetMapping(path = '/ingest/current')
     @ResponseBody IngestJob currentJobStatus() {
         IngestJob ingestJob = ingestJobsService.getCurrentlyRunningJob()
-        ingestJob.ingestJobLogs = ingestJob.ingestJobLogs.sort({ -it.timestamp })
+        ingestJob.ingestJobLogs = ingestJob.ingestJobLogs.sort({ -it.timestamp }).take(20)
 
         return ingestJob
     }
@@ -56,7 +56,7 @@ class IngestVkController {
     @DeleteMapping(path = '/ingest/{jobId}')
     @ResponseBody IngestJob stopJob(@PathVariable String jobId) {
         IngestJob ingestJob = ingestJobsService.stopJob(jobId)
-        ingestJob.ingestJobLogs = ingestJob.ingestJobLogs.sort({ -it.timestamp })
+        ingestJob.ingestJobLogs = ingestJob.ingestJobLogs.sort({ -it.timestamp }).take(20)
 
         return ingestJob
     }
