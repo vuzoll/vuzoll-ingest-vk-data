@@ -37,7 +37,18 @@ class IngestJobsService {
     }
 
     IngestJob getCurrentlyRunningJob() {
-        ingestJobRepository.findByStatus('RUNNING').first()
+        Collection<IngestJob> currentlyRunningJobs = ingestJobRepository.findByStatus('RUNNING')
+
+        if (currentlyRunningJobs.empty) {
+            return null
+        }
+
+        if (currentlyRunningJobs.size() > 1) {
+            log.error("There are more than one running job: ${currentlyRunningJobs}")
+            throw new IllegalStateException("There are more than one running job: ${currentlyRunningJobs}")
+        }
+
+        return currentlyRunningJobs.first()
     }
 
     IngestJob startNewIngestJob(IngestRequest ingestRequest) {
