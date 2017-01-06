@@ -104,6 +104,7 @@ class IngestVkService {
 
                     VkProfile seedProfile = vkService.ingestVkProfileById(seedId)
                     vkProfileRepository.save seedProfile
+                    ingestJob.ingestedCount++
                     continue
                 }
 
@@ -115,10 +116,10 @@ class IngestVkService {
                     vkProfileRepository.countByVkId(friendVkId) == 0
                 }).each({ Integer friendVkId ->
                     log.info "JobId=${ingestJob.id}: found new profile with id=$friendVkId"
-                    ingestJob.ingestedCount++
 
                     VkProfile newProfile = vkService.ingestVkProfileById(friendVkId)
                     vkProfileRepository.save newProfile
+                    ingestJob.ingestedCount++
                 })
             }
 
