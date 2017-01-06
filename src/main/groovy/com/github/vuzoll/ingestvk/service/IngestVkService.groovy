@@ -132,6 +132,7 @@ class IngestVkService {
             log.error("JobId=${ingestJob.id}: ingestion failed", e)
 
             ingestJob.message = "Failed because of ${e.class.name}, with message: ${e.message}"
+            ingestJob.datasetSize = vkProfileRepository.count() as Integer
             ingestJob.endTime = LocalDateTime.now().toString()
             ingestJob.lastUpdateTime = ingestJob.endTime
             ingestJob.timeTaken = toDurationString(System.currentTimeMillis() - ingestJob.startTimestamp)
