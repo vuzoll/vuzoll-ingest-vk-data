@@ -8,8 +8,14 @@ services:
 before_install:
 - chmod +x gradlew
 
+install:
+- ./gradlew assemble -Dscan
+
 before_script:
 - docker login -e="$DOCKER_EMAIL" -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD"
+
+script:
+- ./gradlew check -Dscan
 
 after_script:
 - export DOCKER_REPO=vuzoll/vuzoll-ingest-vk-data
