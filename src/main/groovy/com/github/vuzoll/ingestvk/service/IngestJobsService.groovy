@@ -85,6 +85,11 @@ class IngestJobsService {
     }
 
     IngestJob getLastJob() {
-        ingestJobRepository.findAll(new Sort(Sort.Direction.DESC, 'startTimestamp')).first()
+        List<IngestJob> allJobs = ingestJobRepository.findAll(new Sort(Sort.Direction.DESC, 'startTimestamp'))
+        if (allJobs.empty) {
+            return null
+        } else {
+            return allJobs.first()
+        }
     }
 }
