@@ -28,7 +28,7 @@ class VkApiService {
 
     Collection<UserFull> ingestVkProfilesById(Collection<Integer> ids) {
         try {
-            log.info "Ingesting ${ids.size()} vk profiles ids=$ids..."
+            log.debug "Ingesting ${ids.size()} vk profiles ids=$ids..."
             Thread.sleep(VK_API_REQUEST_DELAY)
 
             def vkRequest
@@ -55,7 +55,7 @@ class VkApiService {
 
     Collection<Integer> getFriendsIds(Integer id) {
         try {
-            log.info "Getting friend list of profile id=$id..."
+            log.debug "Getting friend list of profile id=$id..."
             Thread.sleep(VK_API_REQUEST_DELAY)
 
             def vkRequest
