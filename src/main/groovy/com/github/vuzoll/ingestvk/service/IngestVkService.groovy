@@ -141,13 +141,22 @@ class IngestVkService {
                 Collection<Integer> newProfileIds = randomVkProfile.friendsIds.findAll({ Integer friendVkId ->
                     vkProfileRepository.findByVkId(friendVkId) == null
                 })
-
                 log.info "JobId=${ingestJob.id}: using profile with id=$randomVkProfile.vkId ${newProfileIds.size()} new profiles found, ingesting them..."
-                Collection<UserFull> newProfiles = vkApiService.ingestVkProfilesById(newProfileIds)
 
-                log.info "JobId=${ingestJob.id}: saving ${newProfiles.size()} new profiles to database..."
-                vkProfileRepository.save( newProfiles.collect(this.&toVkProfile) )
-                ingestJob.ingestedCount += newProfiles.size()
+                List<Integer> idsToIngest = new ArrayList<>()
+                idsToIngest.addAll(newProfileIds)
+                while (!idsToIngest.empty) {
+                    int lastIndex = Math.min(idsToIngest.size(), VkApiService.MAX_REQUEST_SIZE)
+
+                    log.info "JobId=${ingestJob.id}: ingesting ${lastIndex} new profiles..."
+                    Collection<UserFull> newProfiles = vkApiService.ingestVkProfilesById(idsToIngest.subList(0, lastIndex))
+
+                    log.info "JobId=${ingestJob.id}: saving ${newProfiles.size()} new profiles to database..."
+                    vkProfileRepository.save( newProfiles.collect(this.&toVkProfile) )
+                    ingestJob.ingestedCount += newProfiles.size()
+
+                    idsToIngest = idsToIngest.subList(lastIndex, idsToIngest.size())
+                }
             }
 
             ingestJob.endTime = LocalDateTime.now().toString()

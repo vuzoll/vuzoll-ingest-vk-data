@@ -24,24 +24,10 @@ class VkApiService {
     VkApiClient vk = new VkApiClient(HttpTransportClient.getInstance())
 
     UserFull ingestVkProfileById(Integer id) {
-        doIngestVkProfilesById([ id ]).first()
+        ingestVkProfilesById([ id ]).first()
     }
 
     Collection<UserFull> ingestVkProfilesById(Collection<Integer> ids) {
-        Collection<UserFull> vkProfiles = []
-
-        List<Integer> idsToIngest = new ArrayList<>()
-        idsToIngest.addAll(ids)
-        while (!idsToIngest.empty) {
-            int lastIndex = Math.min(idsToIngest.size(), MAX_REQUEST_SIZE)
-            vkProfiles += doIngestVkProfilesById(idsToIngest.subList(0, lastIndex))
-            idsToIngest = idsToIngest.subList(lastIndex, idsToIngest.size())
-        }
-
-        return vkProfiles
-    }
-
-    Collection<UserFull> doIngestVkProfilesById(Collection<Integer> ids) {
         if (ids.size() > 1000) {
             log.warn "Request for ${ids.size()} exceed max limit $MAX_REQUEST_SIZE"
             throw new IllegalStateException("Request for ${ids.size()} exceed max limit $MAX_REQUEST_SIZE")
