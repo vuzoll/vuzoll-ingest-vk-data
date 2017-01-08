@@ -71,6 +71,7 @@ class IngestVkService {
             ingestJobRepository.save ingestJob
 
             while (true) {
+                updateJobStatus(ingestJob)
                 log.info "JobId=${ingestJob.id}: ingestion already has taken ${toDurationString(System.currentTimeMillis() - ingestJob.startTimestamp)}"
                 log.info "JobId=${ingestJob.id}: current dataset size is ${ingestJob.datasetSize} records"
                 log.info "JobId=${ingestJob.id}: already ingested ${ingestJob.ingestedCount} records"
