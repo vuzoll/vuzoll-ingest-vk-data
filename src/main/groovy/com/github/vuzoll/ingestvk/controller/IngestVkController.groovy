@@ -2,6 +2,7 @@ package com.github.vuzoll.ingestvk.controller
 
 import com.github.vuzoll.ingestvk.domain.job.IngestJob
 import com.github.vuzoll.ingestvk.service.IngestJobsService
+import groovy.transform.TypeChecked
 import groovy.util.logging.Slf4j
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.DeleteMapping
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @Slf4j
+@TypeChecked
 class IngestVkController {
 
     @Autowired
@@ -46,7 +48,7 @@ class IngestVkController {
     @GetMapping(path = '/ingest/all')
     @ResponseBody List<IngestJob> allJobsStatus() {
         List<IngestJob> allJobs = ingestJobsService.allJobs()
-        
+
         allJobs.each { IngestJob ingestJob ->
             ingestJob.ingestJobLogs.sort({ -it.timestamp })
         }

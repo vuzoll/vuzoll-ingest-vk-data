@@ -5,5 +5,5 @@ import org.springframework.data.repository.PagingAndSortingRepository
 
 interface VkProfileRepository extends PagingAndSortingRepository<VkProfile, String> {
 
-    long countByVkId(Integer vkId)
+    VkProfile findByVkId(Integer vkId)
 }

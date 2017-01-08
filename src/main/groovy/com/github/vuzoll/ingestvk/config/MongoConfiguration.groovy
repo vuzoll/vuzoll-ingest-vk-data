@@ -4,6 +4,7 @@ import com.mongodb.Mongo
 import com.mongodb.MongoClient
 import com.mongodb.MongoCredential
 import com.mongodb.ServerAddress
+import groovy.transform.TypeChecked
 import org.springframework.context.annotation.Configuration
 import org.springframework.data.authentication.UserCredentials
 import org.springframework.data.mongodb.config.AbstractMongoConfiguration
@@ -11,6 +12,7 @@ import org.springframework.data.mongodb.repository.config.EnableMongoRepositorie
 
 @Configuration
 @EnableMongoRepositories('com.github.vuzoll.ingestvk.repository')
+@TypeChecked
 class MongoConfiguration extends AbstractMongoConfiguration {
 
     static String DATABASE_NAME = System.getenv('INGEST_VK_MONGO_DATABASE_NAME') ?: 'vkIngested'
