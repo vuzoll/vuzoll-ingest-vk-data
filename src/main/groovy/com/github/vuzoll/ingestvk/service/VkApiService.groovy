@@ -15,11 +15,12 @@ import org.springframework.stereotype.Service
 @Slf4j
 class VkApiService {
 
+    public static final int MAX_REQUEST_SIZE = 1000
+
     static final Integer VK_USER_ID = System.getenv('INGEST_VK_USER_ID') ? Integer.parseInt(System.getenv('INGEST_VK_USER_ID')) : null
     static final String VK_ACCESS_TOKEN = System.getenv('INGEST_VK_ACCESS_TOKEN')
 
     static final long VK_API_REQUEST_DELAY = 350
-    static final int MAX_REQUEST_SIZE = 1000
 
     VkApiClient vk = new VkApiClient(HttpTransportClient.getInstance())
 
