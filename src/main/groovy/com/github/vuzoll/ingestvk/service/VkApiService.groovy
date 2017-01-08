@@ -8,13 +8,11 @@ import com.vk.api.sdk.exceptions.ApiUserDeletedException
 import com.vk.api.sdk.httpclient.HttpTransportClient
 import com.vk.api.sdk.objects.users.UserFull
 import com.vk.api.sdk.queries.users.UserField
-import groovy.transform.TypeChecked
 import groovy.util.logging.Slf4j
 import org.springframework.stereotype.Service
 
 @Service
 @Slf4j
-@TypeChecked
 class VkApiService {
 
     static Integer VK_USER_ID = System.getenv('INGEST_VK_USER_ID') ? Integer.parseInt(System.getenv('INGEST_VK_USER_ID')) : null
