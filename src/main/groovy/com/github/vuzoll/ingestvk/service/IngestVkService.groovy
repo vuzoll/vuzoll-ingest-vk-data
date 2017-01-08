@@ -71,29 +71,6 @@ class IngestVkService {
             ingestJobRepository.save ingestJob
 
             while (true) {
-                log.info "JobId=${ingestJob.id}: updating job status..."
-                int ingestedCount = ingestJob.ingestedCount
-                ingestJob = ingestJobRepository.findOne(ingestJob.id)
-
-                ingestJob.ingestedCount = ingestedCount
-                ingestJob.datasetSize = vkProfileRepository.count() as Integer
-                ingestJob.lastUpdateTime = LocalDateTime.now().toString()
-                ingestJob.timeTaken = toDurationString(System.currentTimeMillis() - ingestJob.startTimestamp)
-
-                if (ingestJob.ingestJobLogs == null || ingestJob.ingestJobLogs.empty || System.currentTimeMillis() - ingestJob.ingestJobLogs.timestamp.max() > LOG_DELTA) {
-                    log.info 'Saving IngestJob log record...'
-                    IngestJobLog ingestJobLog = new IngestJobLog()
-                    ingestJobLog.timestamp = System.currentTimeMillis()
-                    ingestJobLog.time = LocalDateTime.now().toString()
-                    ingestJobLog.timeTaken = ingestJob.timeTaken
-                    ingestJobLog.status = ingestJob.status
-                    ingestJobLog.datasetSize = ingestJob.datasetSize
-                    ingestJobLog.ingestedCount = ingestJob.ingestedCount
-                    ingestJob.ingestJobLogs = ingestJob.ingestJobLogs == null ? [ ingestJobLog ] : ingestJob.ingestJobLogs + ingestJobLog
-                }
-
-                ingestJobRepository.save ingestJob
-
                 log.info "JobId=${ingestJob.id}: ingestion already has taken ${toDurationString(System.currentTimeMillis() - ingestJob.startTimestamp)}"
                 log.info "JobId=${ingestJob.id}: current dataset size is ${ingestJob.datasetSize} records"
                 log.info "JobId=${ingestJob.id}: already ingested ${ingestJob.ingestedCount} records"
@@ -156,6 +133,8 @@ class IngestVkService {
                     ingestJob.ingestedCount += newProfiles.size()
 
                     idsToIngest = idsToIngest.subList(lastIndex, idsToIngest.size())
+
+                    updateJobStatus(ingestJob)
                 }
             }
 
@@ -177,6 +156,31 @@ class IngestVkService {
 
             throw e
         }
+    }
+
+    void updateJobStatus(IngestJob ingestJob) {
+        log.info "JobId=${ingestJob.id}: updating job status..."
+        int ingestedCount = ingestJob.ingestedCount
+        ingestJob = ingestJobRepository.findOne(ingestJob.id)
+
+        ingestJob.ingestedCount = ingestedCount
+        ingestJob.datasetSize = vkProfileRepository.count() as Integer
+        ingestJob.lastUpdateTime = LocalDateTime.now().toString()
+        ingestJob.timeTaken = toDurationString(System.currentTimeMillis() - ingestJob.startTimestamp)
+
+        if (ingestJob.ingestJobLogs == null || ingestJob.ingestJobLogs.empty || System.currentTimeMillis() - ingestJob.ingestJobLogs.timestamp.max() > LOG_DELTA) {
+            log.info 'Saving IngestJob log record...'
+            IngestJobLog ingestJobLog = new IngestJobLog()
+            ingestJobLog.timestamp = System.currentTimeMillis()
+            ingestJobLog.time = LocalDateTime.now().toString()
+            ingestJobLog.timeTaken = ingestJob.timeTaken
+            ingestJobLog.status = ingestJob.status
+            ingestJobLog.datasetSize = ingestJob.datasetSize
+            ingestJobLog.ingestedCount = ingestJob.ingestedCount
+            ingestJob.ingestJobLogs = ingestJob.ingestJobLogs == null ? [ ingestJobLog ] : ingestJob.ingestJobLogs + ingestJobLog
+        }
+
+        ingestJobRepository.save ingestJob
     }
 
     private VkProfile toVkProfile(UserFull vkApiUser) {
