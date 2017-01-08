@@ -15,18 +15,37 @@ import org.springframework.stereotype.Service
 @Slf4j
 class VkApiService {
 
-    static Integer VK_USER_ID = System.getenv('INGEST_VK_USER_ID') ? Integer.parseInt(System.getenv('INGEST_VK_USER_ID')) : null
-    static String VK_ACCESS_TOKEN = System.getenv('INGEST_VK_ACCESS_TOKEN')
+    static final Integer VK_USER_ID = System.getenv('INGEST_VK_USER_ID') ? Integer.parseInt(System.getenv('INGEST_VK_USER_ID')) : null
+    static final String VK_ACCESS_TOKEN = System.getenv('INGEST_VK_ACCESS_TOKEN')
 
-    static long VK_API_REQUEST_DELAY = 350
+    static final long VK_API_REQUEST_DELAY = 350
+    static final int MAX_REQUEST_SIZE = 1000
 
     VkApiClient vk = new VkApiClient(HttpTransportClient.getInstance())
 
     UserFull ingestVkProfileById(Integer id) {
-        ingestVkProfilesById([ id ]).first()
+        doIngestVkProfilesById([ id ]).first()
     }
 
     Collection<UserFull> ingestVkProfilesById(Collection<Integer> ids) {
+        Collection<UserFull> vkProfiles = []
+
+        Collection<Integer> idsToIngest = new ArrayList<>(ids)
+        while (!idsToIngest.empty) {
+            Collection<Collection<Integer>> idsSplit = idsToIngest.split { it < 1000 }
+            vkProfiles += doIngestVkProfilesById(idsSplit.first())
+            idsToIngest = idsSplit.last()
+        }
+
+        return vkProfiles
+    }
+
+    Collection<UserFull> doIngestVkProfilesById(Collection<Integer> ids) {
+        if (ids.size() > 1000) {
+            log.warn "Request for ${ids.size()} exceed max limit $MAX_REQUEST_SIZE"
+            throw new IllegalStateException("Request for ${ids.size()} exceed max limit $MAX_REQUEST_SIZE")
+        }
+
         try {
             log.debug "Ingesting ${ids.size()} vk profiles ids=$ids..."
             Thread.sleep(VK_API_REQUEST_DELAY)
