@@ -73,7 +73,7 @@ class VkApiService {
             log.error("vk validation required - visit $e.redirectUri", e)
             throw new RuntimeException("vk validation required - visit $e.redirectUri", e)
         } catch (ApiUserDeletedException e) {
-            log.warn("User with id=$id was deactivated", e)
+            log.debug("User with id=$id was deactivated", e)
             return []
         }
     }
