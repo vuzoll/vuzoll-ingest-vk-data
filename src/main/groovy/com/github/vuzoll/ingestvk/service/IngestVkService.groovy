@@ -68,10 +68,10 @@ class IngestVkService {
             ingestJob.startTimestamp = System.currentTimeMillis()
             ingestJob.startTime = LocalDateTime.now().toString()
             ingestJob.ingestedCount = 0
-            ingestJobRepository.save ingestJob
+            ingestJob = ingestJobRepository.save ingestJob
 
             while (true) {
-                updateJobStatus(ingestJob)
+                ingestJob = updateJobStatus(ingestJob)
                 log.info "JobId=${ingestJob.id}: ingestion already has taken ${toDurationString(System.currentTimeMillis() - ingestJob.startTimestamp)}"
                 log.info "JobId=${ingestJob.id}: current dataset size is ${ingestJob.datasetSize} records"
                 log.info "JobId=${ingestJob.id}: already ingested ${ingestJob.ingestedCount} records"
@@ -135,7 +135,7 @@ class IngestVkService {
 
                     idsToIngest = idsToIngest.subList(lastIndex, idsToIngest.size())
 
-                    updateJobStatus(ingestJob)
+                    ingestJob = updateJobStatus(ingestJob)
                 }
             }
 
@@ -159,13 +159,13 @@ class IngestVkService {
         }
     }
 
-    void updateJobStatus(IngestJob ingestJob) {
+    IngestJob updateJobStatus(IngestJob ingestJob) {
         log.info "JobId=${ingestJob.id}: updating job status..."
         int ingestedCount = ingestJob.ingestedCount
         ingestJob = ingestJobRepository.findOne(ingestJob.id)
 
         ingestJob.ingestedCount = ingestedCount
-        ingestJob.datasetSize = vkProfileRepository.count() as Integer
+        ingestJob.datasetSize = vkProfileRepository.count()
         ingestJob.lastUpdateTime = LocalDateTime.now().toString()
         ingestJob.timeTaken = toDurationString(System.currentTimeMillis() - ingestJob.startTimestamp)
 
@@ -181,7 +181,7 @@ class IngestVkService {
             ingestJob.ingestJobLogs = ingestJob.ingestJobLogs == null ? [ ingestJobLog ] : ingestJob.ingestJobLogs + ingestJobLog
         }
 
-        ingestJobRepository.save ingestJob
+        return ingestJobRepository.save(ingestJob)
     }
 
     private VkProfile toVkProfile(UserFull vkApiUser) {
