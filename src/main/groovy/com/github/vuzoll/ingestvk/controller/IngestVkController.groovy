@@ -45,7 +45,13 @@ class IngestVkController {
 
     @GetMapping(path = '/ingest/all')
     @ResponseBody List<IngestJob> allJobsStatus() {
-        ingestJobsService.allJobs()
+        List<IngestJob> allJobs = ingestJobsService.allJobs()
+        
+        allJobs.each { IngestJob ingestJob ->
+            ingestJob.ingestJobLogs.sort({ -it.timestamp })
+        }
+
+        return allJobs
     }
 
     @GetMapping(path = '/ingest/current')
