@@ -5,7 +5,6 @@ import com.mongodb.MongoClient
 import com.mongodb.MongoCredential
 import com.mongodb.ServerAddress
 import org.springframework.context.annotation.Configuration
-import org.springframework.data.authentication.UserCredentials
 import org.springframework.data.mongodb.config.AbstractMongoConfiguration
 import org.springframework.data.mongodb.repository.config.EnableMongoRepositories
 

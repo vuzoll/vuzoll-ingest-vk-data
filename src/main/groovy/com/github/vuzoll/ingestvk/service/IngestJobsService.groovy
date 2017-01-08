@@ -28,7 +28,7 @@ class IngestJobsService {
     @PostConstruct
     void markAbortedJobs() {
         log.info 'Marking all aborted jobs...'
-        Collection<IngestJob> abortedJobs = ingestJobRepository.findByStatus(JobStatus.RUNNING.toString())
+        Collection<IngestJob> abortedJobs = ingestJobRepository.findByStatus(JobStatus.RUNNING.toString()) + ingestJobRepository.findByStatus(JobStatus.STOPPING.toString())
         if (abortedJobs.empty) {
             log.info 'Found no aborted jobs'
         } else {
