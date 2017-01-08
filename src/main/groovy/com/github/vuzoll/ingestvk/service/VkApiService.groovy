@@ -32,9 +32,9 @@ class VkApiService {
 
         Collection<Integer> idsToIngest = new ArrayList<>(ids)
         while (!idsToIngest.empty) {
-            Collection<Collection<Integer>> idsSplit = idsToIngest.split { it < 1000 }
-            vkProfiles += doIngestVkProfilesById(idsSplit.first())
-            idsToIngest = idsSplit.last()
+            int lastIndex = Math.min(idsToIngest.size(), MAX_REQUEST_SIZE)
+            vkProfiles += doIngestVkProfilesById(idsToIngest.subList(0, lastIndex))
+            idsToIngest = idsToIngest.subList(lastIndex, idsToIngest.size())
         }
 
         return vkProfiles
