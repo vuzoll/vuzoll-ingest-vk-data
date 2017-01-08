@@ -68,3 +68,17 @@ docker run -it --rm --link vuzoll_mongo:mongo mongo:3.4.1 mongo -u vuzollAdmin -
 ----
 docker run -it --rm --link vuzoll_mongo:mongo mongo:3.4.1 mongo -u ingestVkService -p $PASSWORD --authenticationDatabase admin vuzoll_mongo/vkIngested
 ----
+
+== Setup indexes
+
+[source,shell]
+----
+docker run -it --rm --link vuzoll_mongo:mongo mongo:3.4.1 mongo -u ingestVkService -p $PASSWORD --authenticationDatabase admin vuzoll_mongo/vkIngested
+----
+
+[source,shell]
+.Execute in mongo shell
+----
+db.vkProfile.getIndexes()
+db.vkProfile.createIndex({ vkId: 1 })
+----

@@ -2,6 +2,7 @@ package com.github.vuzoll.ingestvk.domain.vk
 
 import groovy.transform.EqualsAndHashCode
 import org.springframework.data.annotation.Id
+import org.springframework.data.mongodb.core.index.Indexed
 
 @EqualsAndHashCode(includes = 'vkId')
 class VkProfile {
@@ -9,7 +10,9 @@ class VkProfile {
     @Id
     String id
 
+    @Indexed
     Integer vkId
+
     String vkDomain
     Integer vkLastSeen
     Boolean vkActive
