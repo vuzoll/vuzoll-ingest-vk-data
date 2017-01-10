@@ -1,4 +1,4 @@
-FOM openjdk:8
+FROM openjdk:8
 
 RUN mkdir -p /usr/src/vuzoll-ingest-vk-data
 RUN mkdir -p /usr/app
