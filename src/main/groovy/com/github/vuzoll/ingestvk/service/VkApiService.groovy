@@ -33,11 +33,13 @@ class VkApiService {
     ]
 
     static final long INITIAL_REQUEST_DELAY = 500
+    static final long INITIAL_REQUEST_DELAY_DELTA = 100
 
     VkApiClient vk = new VkApiClient(HttpTransportClient.getInstance())
 
     long lastRequestTimestamp = 0
     long requestDelay = INITIAL_REQUEST_DELAY
+    long delayDelta = INITIAL_REQUEST_DELAY_DELTA
 
     UserFull ingestVkProfileById(Integer id) {
         ingestVkProfilesById([ id ]).first()
@@ -50,23 +52,30 @@ class VkApiService {
         }
 
         log.debug "Ingesting ${ids.size()} vk profiles ids=$ids..."
-        ensureRequestDelay()
-        doIngestVkProfilesById(ids)
+        return ensureRequestDelay({ doIngestVkProfilesById(ids) })
     }
 
     Collection<Integer> getFriendsIds(Integer id) {
         log.debug "Getting friend list of profile id=$id..."
-        ensureRequestDelay()
-        doGetFriendsIds(id)
+        return ensureRequestDelay({ doGetFriendsIds(id) })
     }
 
-    private void ensureRequestDelay() {
+    private <T> T ensureRequestDelay(Closure<T> action) {
         long now = System.currentTimeMillis()
         long neededDelay = requestDelay - now + lastRequestTimestamp
         if (neededDelay > 0) {
             log.debug "Delay ${neededDelay}ms is needed to satisfy vk api policies..."
             Thread.sleep(neededDelay)
         }
+
+        T result = action.call()
+
+        if (neededDelay > 0) {
+            requestDelay -= delayDelta
+            log.debug "Trying to set new delay to ${requestDelay}ms"
+        }
+
+        return result
     }
 
     private Collection<UserFull> doIngestVkProfilesById(Collection<Integer> ids) {
