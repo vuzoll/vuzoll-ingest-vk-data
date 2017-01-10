@@ -75,7 +75,7 @@ class VkApiService {
 
                 if (neededDelay > 0 && delayDelta > 0) {
                     requestDelay -= delayDelta
-                    log.debug "Successfully performed API request, set new delay to ${requestDelay}ms"
+                    log.info "Successfully performed API request, set new delay to ${requestDelay}ms"
                 }
 
                 return result
@@ -86,7 +86,7 @@ class VkApiService {
                 } else {
                     delayDelta = INITIAL_REQUEST_DELAY_DELTA
                 }
-                log.debug "Failed to perform API request, set new delay to ${requestDelay}ms, step to ${delayDelta}ms"
+                log.info "Failed to perform API request, set new delay to ${requestDelay}ms"
             }
         }
     }
