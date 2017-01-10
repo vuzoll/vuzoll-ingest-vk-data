@@ -50,37 +50,6 @@ class IngestVkController {
         return ingestJob
     }
 
-    @GetMapping(path = '/ingest/all')
-    @ResponseBody List<IngestJob> allJobsStatus() {
-        List<IngestJob> allJobs = ingestJobsService.allJobs()
-
-        allJobs.each { IngestJob ingestJob ->
-            if (ingestJob.ingestJobLogs != null) {
-                ingestJob.ingestJobLogs = ingestJob.ingestJobLogs.sort({ -it.timestamp })
-            } else {
-                ingestJob.ingestJobLogs = []
-            }
-        }
-
-        return allJobs
-    }
-
-    @GetMapping(path = '/ingest/current')
-    @ResponseBody IngestJob currentJobStatus() {
-        IngestJob ingestJob = ingestJobsService.getCurrentlyRunningJob()
-        if (ingestJob == null) {
-            return null
-        }
-
-        if (ingestJob.ingestJobLogs != null) {
-            ingestJob.ingestJobLogs = ingestJob.ingestJobLogs.sort({ -it.timestamp }).take(20)
-        } else {
-            ingestJob.ingestJobLogs = []
-        }
-
-        return ingestJob
-    }
-
     @GetMapping(path = '/ingest/last')
     @ResponseBody IngestJob lastJobStatus() {
         IngestJob ingestJob = ingestJobsService.getLastJob()
@@ -97,9 +66,24 @@ class IngestVkController {
         return ingestJob
     }
 
-    @DeleteMapping(path = '/ingest/{jobId}')
-    @ResponseBody IngestJob stopJob(@PathVariable String jobId) {
-        IngestJob ingestJob = ingestJobsService.stopJob(jobId)
+    @GetMapping(path = '/ingest/all')
+    @ResponseBody List<IngestJob> allJobsStatus() {
+        List<IngestJob> allJobs = ingestJobsService.allJobs()
+
+        allJobs.each { IngestJob ingestJob ->
+            if (ingestJob.ingestJobLogs != null) {
+                ingestJob.ingestJobLogs = ingestJob.ingestJobLogs.sort({ -it.timestamp })
+            } else {
+                ingestJob.ingestJobLogs = []
+            }
+        }
+
+        return allJobs
+    }
+
+    @DeleteMapping(path = '/ingest/last')
+    @ResponseBody IngestJob stopJob() {
+        IngestJob ingestJob = ingestJobsService.stopJob()
         if (ingestJob == null) {
             return null
         }

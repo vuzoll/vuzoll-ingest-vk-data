@@ -74,8 +74,11 @@ class IngestJobsService {
         ingestJobRepository.findOne(jobId)
     }
 
-    IngestJob stopJob(String jobId) {
-        IngestJob ingestJob = ingestJobRepository.findOne(jobId)
+    IngestJob stopJob() {
+        IngestJob ingestJob = getCurrentlyRunningJob()
+        if (ingestJob == null) {
+            return null
+        }
         ingestJob.status = JobStatus.STOPPING.toString()
         ingestJobRepository.save ingestJob
     }
