@@ -34,6 +34,8 @@ INGEST_VK_MONGO_USERNAME - username for authentication to mongodb (default is in
 
 INGEST_VK_MONGO_PASSWORD - password for authentication to mongodb
 
+INGEST_VK_REQUEST_SIZE - number of records to ingest in one request (default is 1000)
+
 INGEST_VK_ROOT_LOG_LEVEL - logging level for third-party libraries (default is INFO)
 
 INGEST_VK_VUZOLL_LOG_LEVEL - logging level for service code (default is INFO)

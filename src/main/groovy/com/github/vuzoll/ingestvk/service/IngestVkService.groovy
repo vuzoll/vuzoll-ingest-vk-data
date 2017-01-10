@@ -48,6 +48,8 @@ class IngestVkService {
 
     static final Integer DEFAULT_SEED_ID = Integer.parseInt(System.getenv('INGEST_VK_DEFAULT_SEED_ID') ?: '3542756')
 
+    static final Integer REQUEST_SIZE = Integer.parseInt(System.getenv('INGEST_VK_REQUEST_SIZE') ?: '1000')
+
     static final PeriodFormatter TIME_LIMIT_FORMAT = new PeriodFormatterBuilder()
             .appendHours().appendSuffix('h')
             .appendMinutes().appendSuffix('min')
@@ -126,7 +128,7 @@ class IngestVkService {
                 List<Integer> idsToIngest = new ArrayList<>()
                 idsToIngest.addAll(newProfileIds)
                 while (!idsToIngest.empty) {
-                    int lastIndex = Math.min(idsToIngest.size(), VkApiService.MAX_REQUEST_SIZE)
+                    int lastIndex = Math.min(idsToIngest.size(), REQUEST_SIZE)
 
                     log.info "JobId=${ingestJob.id}: ingesting ${lastIndex} new profiles..."
                     Collection<UserFull> newProfiles = vkApiService.ingestVkProfilesById(idsToIngest.subList(0, lastIndex))
