@@ -4,6 +4,7 @@ import com.vk.api.sdk.client.Lang
 import com.vk.api.sdk.client.VkApiClient
 import com.vk.api.sdk.client.actors.UserActor
 import com.vk.api.sdk.exceptions.ApiAuthValidationException
+import com.vk.api.sdk.exceptions.ApiTooManyException
 import com.vk.api.sdk.exceptions.ApiUserDeletedException
 import com.vk.api.sdk.httpclient.HttpTransportClient
 import com.vk.api.sdk.objects.users.UserFull
@@ -61,21 +62,29 @@ class VkApiService {
     }
 
     private <T> T ensureRequestDelay(Closure<T> action) {
-        long now = System.currentTimeMillis()
-        long neededDelay = requestDelay - now + lastRequestTimestamp
-        if (neededDelay > 0) {
-            log.debug "Delay ${neededDelay}ms is needed to satisfy vk api policies..."
-            Thread.sleep(neededDelay)
+        while (true) {
+            long now = System.currentTimeMillis()
+            long neededDelay = requestDelay - now + lastRequestTimestamp
+            if (neededDelay > 0) {
+                log.debug "Delay ${neededDelay}ms is needed to satisfy vk api policies..."
+                Thread.sleep(neededDelay)
+            }
+
+            try {
+                T result = action.call()
+
+                if (neededDelay > 0 && delayDelta > 0) {
+                    requestDelay -= delayDelta
+                    log.debug "Successfully performed API request, set new delay to ${requestDelay}ms"
+                }
+
+                return result
+            } catch (ApiTooManyException e) {
+                requestDelay += (delayDelta + 1)
+                log.debug "Failed to perform API request, set new delay to ${requestDelay}ms, step to ${delayDelta}ms"
+                delayDelta /= 2
+            }
         }
-
-        T result = action.call()
-
-        if (neededDelay > 0) {
-            requestDelay -= delayDelta
-            log.debug "Trying to set new delay to ${requestDelay}ms"
-        }
-
-        return result
     }
 
     private Collection<UserFull> doIngestVkProfilesById(Collection<Integer> ids) {
