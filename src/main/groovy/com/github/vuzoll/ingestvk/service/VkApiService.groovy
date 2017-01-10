@@ -33,8 +33,8 @@ class VkApiService {
             UserField.SEX,       UserField.TV,         UserField.UNIVERSITIES, UserField.VERIFIED
     ]
 
-    static final long INITIAL_REQUEST_DELAY = 500
-    static final long INITIAL_REQUEST_DELAY_DELTA = 100
+    static final long INITIAL_REQUEST_DELAY = 400
+    static final long INITIAL_REQUEST_DELAY_DELTA = 10
 
     VkApiClient vk = new VkApiClient(HttpTransportClient.getInstance())
 
@@ -81,8 +81,12 @@ class VkApiService {
                 return result
             } catch (ApiTooManyException e) {
                 requestDelay += (delayDelta + 1)
+                if (requestDelay < INITIAL_REQUEST_DELAY) {
+                    delayDelta /= 2
+                } else {
+                    delayDelta = INITIAL_REQUEST_DELAY_DELTA
+                }
                 log.debug "Failed to perform API request, set new delay to ${requestDelay}ms, step to ${delayDelta}ms"
-                delayDelta /= 2
             }
         }
     }
