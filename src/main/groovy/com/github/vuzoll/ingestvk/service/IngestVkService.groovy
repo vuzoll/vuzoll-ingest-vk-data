@@ -130,7 +130,7 @@ class IngestVkService {
                 while (!idsToIngest.empty) {
                     int lastIndex = Math.min(idsToIngest.size(), REQUEST_SIZE)
 
-                    log.info "JobId=${ingestJob.id}: ingesting ${lastIndex} new profiles..."
+                    log.info "JobId=${ingestJob.id}: ingesting ${lastIndex} new profiles (${idsToIngest.subList()} in the queue)..."
                     Collection<UserFull> newProfiles = vkApiService.ingestVkProfilesById(idsToIngest.subList(0, lastIndex))
 
                     log.info "JobId=${ingestJob.id}: saving ${newProfiles.size()} new profiles to database..."
