@@ -22,9 +22,22 @@ class VkApiService {
     static final Integer VK_USER_ID = System.getenv('INGEST_VK_USER_ID') ? Integer.parseInt(System.getenv('INGEST_VK_USER_ID')) : null
     static final String VK_ACCESS_TOKEN = System.getenv('INGEST_VK_ACCESS_TOKEN')
 
-    static final long VK_API_REQUEST_DELAY = 350
+    static final List<UserField> FIELDS_FOR_INGESTION = [
+            UserField.ABOUT,     UserField.ACTIVITIES, UserField.BDATE,        UserField.BOOKS,
+            UserField.CAREER,    UserField.CITY,       UserField.CONNECTIONS,  UserField.CONTACTS,
+            UserField.COUNTRY,   UserField.DOMAIN,     UserField.EDUCATION,    UserField.GAMES,
+            UserField.HOME_TOWN, UserField.INTERESTS,  UserField.LAST_SEEN,    UserField.MILITARY,
+            UserField.MOVIES,    UserField.MUSIC,      UserField.OCCUPATION,   UserField.PERSONAL,
+            UserField.QUOTES,    UserField.RELATIVES,  UserField.RELATION,     UserField.SCHOOLS,
+            UserField.SEX,       UserField.TV,         UserField.UNIVERSITIES, UserField.VERIFIED
+    ]
+
+    static final long INITIAL_REQUEST_DELAY = 500
 
     VkApiClient vk = new VkApiClient(HttpTransportClient.getInstance())
+
+    long lastRequestTimestamp = 0
+    long requestDelay = INITIAL_REQUEST_DELAY
 
     UserFull ingestVkProfileById(Integer id) {
         ingestVkProfilesById([ id ]).first()
@@ -37,16 +50,23 @@ class VkApiService {
         }
 
         log.debug "Ingesting ${ids.size()} vk profiles ids=$ids..."
-        Thread.sleep(VK_API_REQUEST_DELAY)
-
+        ensureRequestDelay()
         doIngestVkProfilesById(ids)
     }
 
     Collection<Integer> getFriendsIds(Integer id) {
         log.debug "Getting friend list of profile id=$id..."
-        Thread.sleep(VK_API_REQUEST_DELAY)
-
+        ensureRequestDelay()
         doGetFriendsIds(id)
+    }
+
+    private void ensureRequestDelay() {
+        long now = System.currentTimeMillis()
+        long neededDelay = requestDelay - now + lastRequestTimestamp
+        if (neededDelay > 0) {
+            log.debug "Delay ${neededDelay}ms is needed to satisfy vk api policies..."
+            Thread.sleep(neededDelay)
+        }
     }
 
     private Collection<UserFull> doIngestVkProfilesById(Collection<Integer> ids) {
@@ -58,16 +78,8 @@ class VkApiService {
                 vkRequest = vk.users().get()
             }
 
-            vkRequest.userIds(ids.collect({ it.toString() }))
-                    .fields(
-                    UserField.ABOUT,     UserField.ACTIVITIES, UserField.BDATE,        UserField.BOOKS,
-                    UserField.CAREER,    UserField.CITY,       UserField.CONNECTIONS,  UserField.CONTACTS,
-                    UserField.COUNTRY,   UserField.DOMAIN,     UserField.EDUCATION,    UserField.GAMES,
-                    UserField.HOME_TOWN, UserField.INTERESTS,  UserField.LAST_SEEN,    UserField.MILITARY,
-                    UserField.MOVIES,    UserField.MUSIC,      UserField.OCCUPATION,   UserField.PERSONAL,
-                    UserField.QUOTES,    UserField.RELATIVES,  UserField.RELATION,     UserField.SCHOOLS,
-                    UserField.SEX,       UserField.TV,         UserField.UNIVERSITIES, UserField.VERIFIED
-            ).lang(Lang.UA).execute()
+            lastRequestTimestamp = System.currentTimeMillis()
+            vkRequest.userIds(ids.collect({ it.toString() })).fields(FIELDS_FOR_INGESTION).lang(Lang.UA).execute()
         } catch (ApiAuthValidationException e) {
             throw new RuntimeException("vk validation required - visit $e.redirectUri", e)
         }
@@ -82,10 +94,8 @@ class VkApiService {
                 vkRequest = vk.friends().get()
             }
 
-            return vkRequest
-                    .userId(id)
-                    .execute()
-                    .items
+            lastRequestTimestamp = System.currentTimeMillis()
+            return vkRequest.userId(id).execute().items
         } catch (ApiAuthValidationException e) {
             log.error("vk validation required - visit $e.redirectUri", e)
             throw new RuntimeException("vk validation required - visit $e.redirectUri", e)
