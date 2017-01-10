@@ -9,8 +9,10 @@ import com.vk.api.sdk.httpclient.HttpTransportClient
 import com.vk.api.sdk.objects.users.UserFull
 import com.vk.api.sdk.queries.users.UserField
 import groovy.util.logging.Slf4j
+import org.springframework.context.annotation.Scope
 import org.springframework.stereotype.Service
 
+@Scope('singleton')
 @Service
 @Slf4j
 class VkApiService {
@@ -34,10 +36,21 @@ class VkApiService {
             throw new IllegalStateException("Request for ${ids.size()} exceed max limit $MAX_REQUEST_SIZE")
         }
 
-        try {
-            log.debug "Ingesting ${ids.size()} vk profiles ids=$ids..."
-            Thread.sleep(VK_API_REQUEST_DELAY)
+        log.debug "Ingesting ${ids.size()} vk profiles ids=$ids..."
+        Thread.sleep(VK_API_REQUEST_DELAY)
 
+        doIngestVkProfilesById(ids)
+    }
+
+    Collection<Integer> getFriendsIds(Integer id) {
+        log.debug "Getting friend list of profile id=$id..."
+        Thread.sleep(VK_API_REQUEST_DELAY)
+
+        doGetFriendsIds(id)
+    }
+
+    private Collection<UserFull> doIngestVkProfilesById(Collection<Integer> ids) {
+        try {
             def vkRequest
             if (VK_USER_ID && VK_ACCESS_TOKEN) {
                 vkRequest = vk.users().get(new UserActor(VK_USER_ID, VK_ACCESS_TOKEN))
@@ -60,11 +73,8 @@ class VkApiService {
         }
     }
 
-    Collection<Integer> getFriendsIds(Integer id) {
+    Collection<Integer> doGetFriendsIds(Integer id) {
         try {
-            log.debug "Getting friend list of profile id=$id..."
-            Thread.sleep(VK_API_REQUEST_DELAY)
-
             def vkRequest
             if (VK_USER_ID && VK_ACCESS_TOKEN) {
                 vkRequest = vk.friends().get(new UserActor(VK_USER_ID, VK_ACCESS_TOKEN))
