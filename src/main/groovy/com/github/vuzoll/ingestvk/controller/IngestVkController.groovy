@@ -41,7 +41,12 @@ class IngestVkController {
             return null
         }
 
-        ingestJob.ingestJobLogs = ingestJob.ingestJobLogs.sort({ -it.timestamp }).take(20)
+        if (ingestJob.ingestJobLogs != null) {
+            ingestJob.ingestJobLogs = ingestJob.ingestJobLogs.sort({ -it.timestamp }).take(20)
+        } else {
+            ingestJob.ingestJobLogs = []
+        }
+
         return ingestJob
     }
 
@@ -50,7 +55,11 @@ class IngestVkController {
         List<IngestJob> allJobs = ingestJobsService.allJobs()
 
         allJobs.each { IngestJob ingestJob ->
-            ingestJob.ingestJobLogs.sort({ -it.timestamp })
+            if (ingestJob.ingestJobLogs != null) {
+                ingestJob.ingestJobLogs = ingestJob.ingestJobLogs.sort({ -it.timestamp })
+            } else {
+                ingestJob.ingestJobLogs = []
+            }
         }
 
         return allJobs
@@ -63,7 +72,12 @@ class IngestVkController {
             return null
         }
 
-        ingestJob.ingestJobLogs = ingestJob.ingestJobLogs.sort({ -it.timestamp }).take(20)
+        if (ingestJob.ingestJobLogs != null) {
+            ingestJob.ingestJobLogs = ingestJob.ingestJobLogs.sort({ -it.timestamp }).take(20)
+        } else {
+            ingestJob.ingestJobLogs = []
+        }
+
         return ingestJob
     }
 
@@ -74,7 +88,12 @@ class IngestVkController {
             return null
         }
 
-        ingestJob.ingestJobLogs = ingestJob.ingestJobLogs.sort({ -it.timestamp }).take(20)
+        if (ingestJob.ingestJobLogs != null) {
+            ingestJob.ingestJobLogs = ingestJob.ingestJobLogs.sort({ -it.timestamp }).take(20)
+        } else {
+            ingestJob.ingestJobLogs = []
+        }
+
         return ingestJob
     }
 
@@ -85,7 +104,12 @@ class IngestVkController {
             return null
         }
 
-        ingestJob.ingestJobLogs = ingestJob.ingestJobLogs.sort({ -it.timestamp }).take(20)
+        if (ingestJob.ingestJobLogs != null) {
+            ingestJob.ingestJobLogs = ingestJob.ingestJobLogs.sort({ -it.timestamp }).take(20)
+        } else {
+            ingestJob.ingestJobLogs = []
+        }
+
         return ingestJob
     }
 }
