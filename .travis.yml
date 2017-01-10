@@ -25,8 +25,6 @@ before_script:
 
 script:
 - ./gradlew check -Dscan
-
-after_script:
 - export DOCKER_REPO=vuzoll/vuzoll-ingest-vk-data
 - export TAG=`if [ "$TRAVIS_BRANCH" == "master" ]; then echo "latest"; else echo $TRAVIS_BRANCH | tr '/' '-' ; fi`
 - docker build -t $DOCKER_REPO:travis-$TRAVIS_BUILD_NUMBER .
