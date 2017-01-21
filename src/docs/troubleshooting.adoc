@@ -1,0 +1,11 @@
+= Troubleshooting
+
+== vk validation required
+
+[source]
+----
+11:42:20.177 [SimpleAsyncTaskExecutor-1] ERROR c.g.v.i.service.IngestVkService - JobId=5883491ac9e77c0001661cae: ingestion failed
+java.lang.RuntimeException: vk validation required - visit https://m.vk.com/login?act=security_check&api_hash=88fde6c60e3845f964
+----
+
+Copy link and use `lynx` to open it and pass validation.
