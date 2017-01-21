@@ -16,3 +16,12 @@ Following parameters are available for POST body:
   }
 }
 ----
+
+
+GET to http://138.68.145.93:8080/ingest/{jobId}
+
+GET to http://138.68.145.93:8080/ingest/last
+
+GET to http://138.68.145.93:8080/ingest/all
+
+DELETE to http://138.68.145.93:8080/ingest/last
