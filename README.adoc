@@ -17,3 +17,5 @@ link:src/docs/mongodb-setup.adoc[MongoDB setup]
 link:src/docs/vk-api-profile-fields.adoc[vk api profile fields]
 
 link:src/docs/vk-ingested-profile-fields.adoc[vk ingested profile fields]
+
+link:src/docs/troubleshooting.adoc[Troubleshooting]

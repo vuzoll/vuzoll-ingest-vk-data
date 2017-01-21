@@ -27,7 +27,6 @@ import com.vk.api.sdk.objects.users.School
 import com.vk.api.sdk.objects.users.University
 import com.vk.api.sdk.objects.users.UserFull
 import com.vk.api.sdk.objects.users.UserMin
-import groovy.transform.TypeChecked
 import groovy.util.logging.Slf4j
 import org.apache.commons.lang3.RandomUtils
 import org.joda.time.Period
@@ -46,9 +45,9 @@ class IngestVkService {
 
     static final long LOG_DELTA = TimeUnit.HOURS.toMillis(1)
 
-    static final Integer DEFAULT_SEED_ID = Integer.parseInt(System.getenv('INGEST_VK_DEFAULT_SEED_ID') ?: '3542756')
+    static final String DEFAULT_SEED_ID = System.getenv('INGEST_VK_DEFAULT_SEED_ID') ?: '3542756'
 
-    static final Integer REQUEST_SIZE = Integer.parseInt(System.getenv('INGEST_VK_REQUEST_SIZE') ?: '1000')
+    static final Integer REQUEST_SIZE = Integer.parseInt(System.getenv('INGEST_VK_REQUEST_SIZE') ?: '100')
 
     static final PeriodFormatter TIME_LIMIT_FORMAT = new PeriodFormatterBuilder()
             .appendHours().appendSuffix('h')
@@ -105,12 +104,13 @@ class IngestVkService {
                 }
 
                 if (ingestJob.datasetSize == 0) {
-                    Integer seedId = Integer.parseInt(ingestJob.request.parameters?.getOrDefault('seedId', DEFAULT_SEED_ID.toString())) ?: DEFAULT_SEED_ID
+                    Integer seedId = Integer.parseInt(ingestJob.request.parameters?.getOrDefault('seedId', DEFAULT_SEED_ID) ?: DEFAULT_SEED_ID)
                     log.warn "JobId=${ingestJob.id}: dataset is empty - using seed profile with id=$seedId to initialize it..."
 
                     UserFull seedProfile = vkApiService.ingestVkProfileById(seedId)
                     vkProfileRepository.save toVkProfile(seedProfile)
                     ingestJob.ingestedCount++
+                    ingestJob.datasetSize = vkProfileRepository.count()
                     continue
                 }
 
@@ -121,7 +121,7 @@ class IngestVkService {
                 log.info "JobId=${ingestJob.id}: using profile with id=$randomVkProfile.vkId for the next ingestion iteration..."
                 log.info "JobId=${ingestJob.id}: profile with id=$randomVkProfile.vkId has ${randomVkProfile.friendsIds.size()} friends, finding new profiles..."
                 Collection<Integer> newProfileIds = randomVkProfile.friendsIds.findAll({ Integer friendVkId ->
-                    vkProfileRepository.findByVkId(friendVkId) == null
+                    vkProfileRepository.findOneByVkId(friendVkId) == null
                 })
                 log.info "JobId=${ingestJob.id}: using profile with id=$randomVkProfile.vkId ${newProfileIds.size()} new profiles found, ingesting them..."
 

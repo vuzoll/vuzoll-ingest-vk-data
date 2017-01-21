@@ -11,9 +11,8 @@ mkdir -p /logs
 
 [source,shell]
 ----
-docker ps # to determine if container is already running
-docker kill $CONTAINER_ID # if needed
-docker rm vuzoll_ingest_vk_data # if needed
+docker ps -a
+docker kill vuzoll_ingest_vk_data; docker rm vuzoll_ingest_vk_data
 ----
 
 == Configuration parameters
