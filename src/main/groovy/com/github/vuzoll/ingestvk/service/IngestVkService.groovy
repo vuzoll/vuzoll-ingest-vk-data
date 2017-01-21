@@ -27,7 +27,6 @@ import com.vk.api.sdk.objects.users.School
 import com.vk.api.sdk.objects.users.University
 import com.vk.api.sdk.objects.users.UserFull
 import com.vk.api.sdk.objects.users.UserMin
-import groovy.transform.TypeChecked
 import groovy.util.logging.Slf4j
 import org.apache.commons.lang3.RandomUtils
 import org.joda.time.Period
@@ -121,7 +120,7 @@ class IngestVkService {
                 log.info "JobId=${ingestJob.id}: using profile with id=$randomVkProfile.vkId for the next ingestion iteration..."
                 log.info "JobId=${ingestJob.id}: profile with id=$randomVkProfile.vkId has ${randomVkProfile.friendsIds.size()} friends, finding new profiles..."
                 Collection<Integer> newProfileIds = randomVkProfile.friendsIds.findAll({ Integer friendVkId ->
-                    vkProfileRepository.findByVkId(friendVkId) == null
+                    vkProfileRepository.findOneByVkId(friendVkId) == null
                 })
                 log.info "JobId=${ingestJob.id}: using profile with id=$randomVkProfile.vkId ${newProfileIds.size()} new profiles found, ingesting them..."
 

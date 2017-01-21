@@ -1,6 +1,8 @@
 = HOWTO: run service
 
-POST to http://138.68.145.93:8080/ingest
+== Endpoints
+
+POST to http://<host>:<port>/ingest
 
 Following parameters are available for POST body:
 
@@ -18,10 +20,27 @@ Following parameters are available for POST body:
 ----
 
 
-GET to http://138.68.145.93:8080/ingest/{jobId}
+GET to http://<host>:<port>/ingest/{jobId}
 
-GET to http://138.68.145.93:8080/ingest/last
+GET to http://<host>:<port>/ingest/last
 
-GET to http://138.68.145.93:8080/ingest/all
+GET to http://<host>:<port>/ingest/all
 
-DELETE to http://138.68.145.93:8080/ingest/last
+DELETE to http://<host>:<port>/ingest/last
+
+
+GET to http://<host>:<port>/ingested/profile/count
+
+GET to http://<host>:<port>/ingested/profile/random
+
+GET to http://<host>:<port>/ingested/profile/id/{id}
+
+GET to http://<host>:<port>/ingested/profile/vkId/{vkId}
+
+DELETE to http://<host>:<port>/ingested/profile
+
+== Service locations
+
+Development instance - 138.68.99.206:8080
+
+Production instance - 139.59.141.72:8080
