@@ -110,6 +110,7 @@ class IngestVkService {
                     UserFull seedProfile = vkApiService.ingestVkProfileById(seedId)
                     vkProfileRepository.save toVkProfile(seedProfile)
                     ingestJob.ingestedCount++
+                    ingestJob.datasetSize = vkProfileRepository.count()
                     continue
                 }
 
