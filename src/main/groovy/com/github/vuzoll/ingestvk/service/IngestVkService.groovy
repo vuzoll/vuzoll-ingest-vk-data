@@ -45,9 +45,9 @@ class IngestVkService {
 
     static final long LOG_DELTA = TimeUnit.HOURS.toMillis(1)
 
-    static final Integer DEFAULT_SEED_ID = Integer.parseInt(System.getenv('INGEST_VK_DEFAULT_SEED_ID') ?: '3542756')
+    static final String DEFAULT_SEED_ID = System.getenv('INGEST_VK_DEFAULT_SEED_ID') ?: '3542756'
 
-    static final Integer REQUEST_SIZE = Integer.parseInt(System.getenv('INGEST_VK_REQUEST_SIZE') ?: '1000')
+    static final Integer REQUEST_SIZE = Integer.parseInt(System.getenv('INGEST_VK_REQUEST_SIZE') ?: '100')
 
     static final PeriodFormatter TIME_LIMIT_FORMAT = new PeriodFormatterBuilder()
             .appendHours().appendSuffix('h')
@@ -104,7 +104,7 @@ class IngestVkService {
                 }
 
                 if (ingestJob.datasetSize == 0) {
-                    Integer seedId = Integer.parseInt(ingestJob.request.parameters?.getOrDefault('seedId', DEFAULT_SEED_ID.toString())) ?: DEFAULT_SEED_ID
+                    Integer seedId = Integer.parseInt(ingestJob.request.parameters?.getOrDefault('seedId', DEFAULT_SEED_ID) ?: DEFAULT_SEED_ID)
                     log.warn "JobId=${ingestJob.id}: dataset is empty - using seed profile with id=$seedId to initialize it..."
 
                     UserFull seedProfile = vkApiService.ingestVkProfileById(seedId)
