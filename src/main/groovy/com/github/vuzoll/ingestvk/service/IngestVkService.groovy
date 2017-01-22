@@ -64,10 +64,10 @@ class IngestVkService {
     @Autowired
     VkApiService vkApiService
 
-    void bfsIngest(IngestJob ingestJob) {
+    void bfsIngest(IngestJob jobToStart) {
         int indexToIngest = 0
 
-        ingest(ingestJob, {
+        ingest(jobToStart, { IngestJob ingestJob ->
             log.info "JobId=${ingestJob.id}: choosing profile for next ingestion iteration: ${indexToIngest} / ${ingestJob.datasetSize}"
             VkProfile nextProfileToIngest = vkProfileRepository.findOneByIngestionIndex(indexToIngest)
             indexToIngest++
@@ -75,8 +75,8 @@ class IngestVkService {
         })
     }
 
-    void randomizedBfsIngest(IngestJob ingestJob) {
-        ingest(ingestJob, {
+    void randomizedBfsIngest(IngestJob jobToStart) {
+        ingest(jobToStart, { IngestJob ingestJob ->
             int randomVkProfileIndex = RandomUtils.nextInt(0, ingestJob.datasetSize)
             log.info "JobId=${ingestJob.id}: choosing random profile for next ingestion iteration: ${randomVkProfileIndex} / ${ingestJob.datasetSize}"
             return vkProfileRepository.findAll(new PageRequest(randomVkProfileIndex, 1)).content.first()
@@ -137,7 +137,7 @@ class IngestVkService {
                     continue
                 }
 
-                VkProfile nextVkProfileToIngest = getNextProfileToIngest.call()
+                VkProfile nextVkProfileToIngest = getNextProfileToIngest.call(ingestJob)
 
                 log.info "JobId=${ingestJob.id}: using profile with id=$nextVkProfileToIngest.vkId for the next ingestion iteration..."
                 log.info "JobId=${ingestJob.id}: profile with id=$nextVkProfileToIngest.vkId has ${nextVkProfileToIngest.friendsIds.size()} friends, finding new profiles..."

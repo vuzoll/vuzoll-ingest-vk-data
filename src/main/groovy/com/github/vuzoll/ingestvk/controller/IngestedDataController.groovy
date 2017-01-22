@@ -49,6 +49,13 @@ class IngestedDataController {
         vkProfileRepository.findOneByVkId(vkId)
     }
 
+    @GetMapping(path = '/ingested/profile/ingestionIndex/{ingestionIndex}')
+    @ResponseBody VkProfile ingestedProfileByIngestionIndex(@PathVariable Integer ingestionIndex) {
+        log.info "Receive request for ingested profile with ingestionIndex=${ingestionIndex}"
+
+        vkProfileRepository.findOneByIngestionIndex(ingestionIndex)
+    }
+
     @DeleteMapping(path = '/ingested/profile')
     void deleteAllIngestedProfiles() {
         log.warn 'Receive request to delete all ingested records'
