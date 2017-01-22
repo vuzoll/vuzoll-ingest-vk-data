@@ -155,7 +155,7 @@ class IngestVkService {
                     Collection<UserFull> newProfiles = vkApiService.ingestVkProfilesById(idsToIngest.subList(0, lastIndex))
 
                     log.info "JobId=${ingestJob.id}: saving ${newProfiles.size()} new profiles to database..."
-                    vkProfileRepository.save( newProfiles.collect(this.&toVkProfile).collect({ it.ingestionIndex = ingestionIndex; ingestionIndex++ }) )
+                    vkProfileRepository.save( newProfiles.collect(this.&toVkProfile).collect({ it.ingestionIndex = ingestionIndex; ingestionIndex++; return it }) )
                     ingestJob.ingestedCount += newProfiles.size()
 
                     idsToIngest = idsToIngest.subList(lastIndex, idsToIngest.size())
