@@ -37,6 +37,8 @@ GET to http://<host>:<port>/ingested/profile/id/{id}
 
 GET to http://<host>:<port>/ingested/profile/vkId/{vkId}
 
+GET to http://<host>:<port>/ingested/profile/ingestionIndex/{ingestionIndex}
+
 DELETE to http://<host>:<port>/ingested/profile
 
 == Service locations
