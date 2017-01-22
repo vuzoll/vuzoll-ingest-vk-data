@@ -64,7 +64,26 @@ class IngestVkService {
     @Autowired
     VkApiService vkApiService
 
+    void bfsIngest(IngestJob ingestJob) {
+        int indexToIngest = 0
+
+        ingest(ingestJob, {
+            log.info "JobId=${ingestJob.id}: choosing profile for next ingestion iteration: ${indexToIngest} / ${ingestJob.datasetSize}"
+            VkProfile nextProfileToIngest = vkProfileRepository.findOneByIngestionIndex(indexToIngest)
+            indexToIngest++
+            return nextProfileToIngest
+        })
+    }
+
     void randomizedBfsIngest(IngestJob ingestJob) {
+        ingest(ingestJob, {
+            int randomVkProfileIndex = RandomUtils.nextInt(0, ingestJob.datasetSize)
+            log.info "JobId=${ingestJob.id}: choosing random profile for next ingestion iteration: ${randomVkProfileIndex} / ${ingestJob.datasetSize}"
+            return vkProfileRepository.findAll(new PageRequest(randomVkProfileIndex, 1)).content.first()
+        })
+    }
+
+    private void ingest(IngestJob ingestJob, Closure<VkProfile> getNextProfileToIngest) {
         try {
             ingestJob.startTimestamp = System.currentTimeMillis()
             ingestJob.startTime = LocalDateTime.now().toString()
@@ -73,6 +92,8 @@ class IngestVkService {
             ingestJob.lastUpdateTime = ingestJob.startTime
             ingestJob.timeTaken = '0sec'
             ingestJob = ingestJobRepository.save ingestJob
+
+            int ingestionIndex = ingestJob.datasetSize
 
             while (true) {
                 log.info "JobId=${ingestJob.id}: ingestion already has taken ${toDurationString(System.currentTimeMillis() - ingestJob.startTimestamp)}"
@@ -107,23 +128,23 @@ class IngestVkService {
                     Integer seedId = Integer.parseInt(ingestJob.request.parameters?.getOrDefault('seedId', DEFAULT_SEED_ID) ?: DEFAULT_SEED_ID)
                     log.warn "JobId=${ingestJob.id}: dataset is empty - using seed profile with id=$seedId to initialize it..."
 
-                    UserFull seedProfile = vkApiService.ingestVkProfileById(seedId)
-                    vkProfileRepository.save toVkProfile(seedProfile)
+                    VkProfile seedProfile = toVkProfile(vkApiService.ingestVkProfileById(seedId))
+                    seedProfile.ingestionIndex = ingestionIndex
+                    vkProfileRepository.save seedProfile
+                    ingestionIndex++
                     ingestJob.ingestedCount++
                     ingestJob.datasetSize = vkProfileRepository.count()
                     continue
                 }
 
-                int randomVkProfileIndex = RandomUtils.nextInt(0, ingestJob.datasetSize)
-                log.info "JobId=${ingestJob.id}: choosing random profile for next ingestion iteration: ${randomVkProfileIndex} / ${ingestJob.datasetSize}"
-                VkProfile randomVkProfile = vkProfileRepository.findAll(new PageRequest(randomVkProfileIndex, 1)).content.first()
+                VkProfile nextVkProfileToIngest = getNextProfileToIngest.call()
 
-                log.info "JobId=${ingestJob.id}: using profile with id=$randomVkProfile.vkId for the next ingestion iteration..."
-                log.info "JobId=${ingestJob.id}: profile with id=$randomVkProfile.vkId has ${randomVkProfile.friendsIds.size()} friends, finding new profiles..."
-                Collection<Integer> newProfileIds = randomVkProfile.friendsIds.findAll({ Integer friendVkId ->
+                log.info "JobId=${ingestJob.id}: using profile with id=$nextVkProfileToIngest.vkId for the next ingestion iteration..."
+                log.info "JobId=${ingestJob.id}: profile with id=$nextVkProfileToIngest.vkId has ${nextVkProfileToIngest.friendsIds.size()} friends, finding new profiles..."
+                Collection<Integer> newProfileIds = nextVkProfileToIngest.friendsIds.findAll({ Integer friendVkId ->
                     vkProfileRepository.findOneByVkId(friendVkId) == null
                 })
-                log.info "JobId=${ingestJob.id}: using profile with id=$randomVkProfile.vkId ${newProfileIds.size()} new profiles found, ingesting them..."
+                log.info "JobId=${ingestJob.id}: using profile with id=$nextVkProfileToIngest.vkId ${newProfileIds.size()} new profiles found, ingesting them..."
 
                 List<Integer> idsToIngest = new ArrayList<>()
                 idsToIngest.addAll(newProfileIds)
@@ -134,7 +155,7 @@ class IngestVkService {
                     Collection<UserFull> newProfiles = vkApiService.ingestVkProfilesById(idsToIngest.subList(0, lastIndex))
 
                     log.info "JobId=${ingestJob.id}: saving ${newProfiles.size()} new profiles to database..."
-                    vkProfileRepository.save( newProfiles.collect(this.&toVkProfile) )
+                    vkProfileRepository.save( newProfiles.collect(this.&toVkProfile).collect({ it.ingestionIndex = ingestionIndex; ingestionIndex++ }) )
                     ingestJob.ingestedCount += newProfiles.size()
 
                     idsToIngest = idsToIngest.subList(lastIndex, idsToIngest.size())

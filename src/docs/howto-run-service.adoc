@@ -9,7 +9,7 @@ Following parameters are available for POST body:
 [source]
 ----
 {
-  "method": "randomized-bfs",
+  "method": "bfs|randomized-bfs",
   "timeLimit": '1h28min17sec',
   "ingestedLimit": 300,
   "dataSizeLimit": 300,

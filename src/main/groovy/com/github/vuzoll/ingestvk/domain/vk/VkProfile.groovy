@@ -13,6 +13,9 @@ class VkProfile {
     @Indexed
     Integer vkId
 
+    @Indexed
+    Integer ingestionIndex
+
     String vkDomain
     Integer vkLastSeen
     Boolean vkActive
