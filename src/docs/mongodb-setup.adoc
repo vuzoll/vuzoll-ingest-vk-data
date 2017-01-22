@@ -4,9 +4,8 @@
 
 [source,shell]
 ----
-docker ps # to determine if container is already running
-docker kill $CONTAINER_ID # if needed
-docker rm vuzoll_mongo # if needed
+docker ps
+docker kill vuzoll_mongo; docker rm vuzoll_mongo
 ----
 
 == Cleaning data
@@ -14,13 +13,6 @@ docker rm vuzoll_mongo # if needed
 [source,shell]
 ----
 rm -rf /data/mongodb
-----
-
-== Environment setup
-
-[source,shell]
-----
-mkdir -p /data/mongodb
 ----
 
 == Start mongo
@@ -81,4 +73,5 @@ docker run -it --rm --link vuzoll_mongo:mongo mongo:3.4.1 mongo -u ingestVkServi
 ----
 db.vkProfile.getIndexes()
 db.vkProfile.createIndex({ vkId: 1 })
+db.vkProfile.createIndex({ ingestionIndex: 1 })
 ----

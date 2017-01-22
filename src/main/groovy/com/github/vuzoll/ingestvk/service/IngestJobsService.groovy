@@ -54,7 +54,17 @@ class IngestJobsService {
     }
 
     IngestJob startNewIngestJob(IngestRequest ingestRequest) {
-        if (ingestRequest.method == 'randomized-bfs') {
+        if (ingestRequest.method == 'bfs') {
+            IngestJob startedJob = new IngestJob()
+            startedJob.request = ingestRequest
+            startedJob.status = JobStatus.RUNNING.toString()
+
+            startedJob = ingestJobRepository.save startedJob
+
+            taskExecutor.execute({ ingestVkService.bfsIngest(startedJob) })
+
+            return startedJob
+        } else if (ingestRequest.method == 'randomized-bfs') {
             IngestJob startedJob = new IngestJob()
             startedJob.request = ingestRequest
             startedJob.status = JobStatus.RUNNING.toString()

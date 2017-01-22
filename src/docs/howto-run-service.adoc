@@ -9,7 +9,7 @@ Following parameters are available for POST body:
 [source]
 ----
 {
-  "method": "randomized-bfs",
+  "method": "bfs|randomized-bfs",
   "timeLimit": '1h28min17sec',
   "ingestedLimit": 300,
   "dataSizeLimit": 300,
@@ -36,6 +36,8 @@ GET to http://<host>:<port>/ingested/profile/random
 GET to http://<host>:<port>/ingested/profile/id/{id}
 
 GET to http://<host>:<port>/ingested/profile/vkId/{vkId}
+
+GET to http://<host>:<port>/ingested/profile/ingestionIndex/{ingestionIndex}
 
 DELETE to http://<host>:<port>/ingested/profile
 
