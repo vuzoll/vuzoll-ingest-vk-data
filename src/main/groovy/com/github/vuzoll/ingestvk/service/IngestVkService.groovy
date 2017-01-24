@@ -234,7 +234,7 @@ class IngestVkService {
 
         vkProfile.occupation = toVkOccupation(vkApiUser.occupation)
         vkProfile.careerRecords = vkApiUser.career?.collect(this.&toVkCareerRecord)?.findAll({ it != null }) ?: []
-        vkProfile.universityRecords = ((vkApiUser.universities?.collect(this.&toVkUniversityRecord) ?: []) + toVkUniversityRecord(vkApiUser))?.findAll({ it != null }) ?: []
+        vkProfile.universityRecords = collectUniversityRecords(vkApiUser)
         vkProfile.militaryRecords = vkApiUser.military?.collect(this.&toVkMilitaryRecord)?.findAll({ it != null }) ?: []
         vkProfile.schoolRecords = vkApiUser.schools?.collect(this.&toVkSchoolRecord)?.findAll({ it != null }) ?: []
 
@@ -260,6 +260,15 @@ class IngestVkService {
         vkProfile.tvShows = vkApiUser.tv
 
         return vkProfile
+    }
+
+    Set<VkUniversityRecord> collectUniversityRecords(UserFull vkApiUser) {
+        Set<VkUniversityRecord> universityRecords = vkApiUser.universities?.collect(this.&toVkUniversityRecord) ?: []
+        if (universityRecords.isEmpty()) {
+            universityRecords.add(toVkUniversityRecord(vkApiUser))
+        }
+
+        return universityRecords.findAll({ it != null })
     }
 
     private VkCareerRecord toVkCareerRecord(Career vkApiCareer) {
@@ -320,6 +329,10 @@ class IngestVkService {
         vkUniversityRecord.educationForm = vkApiUniversity.educationForm
         vkUniversityRecord.educationStatus = vkApiUniversity.educationStatus
 
+        if (vkUniversityRecord.universityId == null) {
+            return null
+        }
+
         return vkUniversityRecord
     }
 
@@ -336,6 +349,10 @@ class IngestVkService {
         vkUniversityRecord.graduationYear = vkApiUser.graduation
         vkUniversityRecord.educationForm = vkApiUser.educationForm
         vkUniversityRecord.educationStatus = vkApiUser.educationStatus
+
+        if (vkUniversityRecord.universityId == null) {
+            return null
+        }
 
         return vkUniversityRecord
     }
