@@ -329,7 +329,7 @@ class IngestVkService {
         vkUniversityRecord.educationForm = vkApiUniversity.educationForm
         vkUniversityRecord.educationStatus = vkApiUniversity.educationStatus
 
-        if (vkUniversityRecord.universityId == null) {
+        if (vkUniversityRecord.universityId == null || vkUniversityRecord.universityId == 0) {
             return null
         }
 
@@ -350,7 +350,7 @@ class IngestVkService {
         vkUniversityRecord.educationForm = vkApiUser.educationForm
         vkUniversityRecord.educationStatus = vkApiUser.educationStatus
 
-        if (vkUniversityRecord.universityId == null) {
+        if (vkUniversityRecord.universityId == null || vkUniversityRecord.universityId == 0) {
             return null
         }
 
