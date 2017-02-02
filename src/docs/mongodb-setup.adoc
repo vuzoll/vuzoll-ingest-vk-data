@@ -36,6 +36,19 @@ docker exec -it vuzoll_mongo mongo admin
 db.createUser({ user: 'vuzollAdmin', pwd: '$PASSWORD', roles: [ { role: "userAdminAnyDatabase", db: "admin" } ] });
 ----
 
+== Add root user
+
+[source,shell]
+----
+docker run -it --rm --link vuzoll_mongo:mongo mongo:3.4.1 mongo -u vuzollAdmin -p $PASSWORD --authenticationDatabase admin vuzoll_mongo/admin
+----
+
+[source,shell]
+.Execute in mongo shell
+----
+db.createUser({ user: 'vuzollRoot', pwd: '$PASSWORD', roles: [ { role: "root", db: "admin" } ] });
+----
+
 == Add service user
 
 [source,shell]
