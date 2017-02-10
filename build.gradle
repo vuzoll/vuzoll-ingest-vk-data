@@ -1,33 +1,36 @@
-buildscript {
-    repositories {
-        jcenter()
-    }
-    dependencies {
-        classpath 'org.springframework.boot:spring-boot-gradle-plugin:1.4.2.RELEASE'
-    }
+plugins {
+    id 'com.gradle.build-scan' version '1.4'
+    id 'org.springframework.boot' version '1.4.3.RELEASE'
 }
 
 apply plugin: 'groovy'
 apply plugin: 'idea'
-apply plugin: 'org.springframework.boot'
 
-version = '0.4'
+version = '0.5'
 
 repositories {
     jcenter()
 }
 
 dependencies {
-    compile 'org.springframework.boot:spring-boot-starter-web'
-
     compile 'org.codehaus.groovy:groovy-all'
+
+    compile 'org.springframework.boot:spring-boot-starter-web'
+    compile 'org.springframework.data:spring-data-mongodb'
 
     compile 'org.slf4j:slf4j-api'
     compile 'ch.qos.logback:logback-classic'
 
-    compile 'com.vk.api:sdk:0.3.6'
+    compile 'org.apache.commons:commons-lang3:3.5'
 
     compile 'joda-time:joda-time'
+
+    compile 'com.vk.api:sdk:0.3.6'
+}
+
+buildScan {
+    licenseAgreementUrl = 'https://gradle.com/terms-of-service'
+    licenseAgree = 'yes'
 }
 
 apply plugin: 'application'

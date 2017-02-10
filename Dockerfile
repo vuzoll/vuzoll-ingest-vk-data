@@ -10,6 +10,5 @@ RUN ln -s /usr/app/vuzoll-ingest-vk-data-* /usr/app/vuzoll-ingest-vk-data
 
 WORKDIR /usr/app/vuzoll-ingest-vk-data
 
-EXPOSE 8080
 ENTRYPOINT ["./bin/vuzoll-ingest-vk-data"]
 CMD []

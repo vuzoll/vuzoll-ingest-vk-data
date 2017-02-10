@@ -6,50 +6,16 @@ TravisCI - https://travis-ci.org/vuzoll/vuzoll-ingest-vk-data/
 
 DockerHub - https://hub.docker.com/r/vuzoll/vuzoll-ingest-vk-data/
 
-== HOWTO: start with docker
+== Documentation
 
-[source,shell]
-----
-mkdir /data
-mkdir /logs
+link:src/docs/howto-start-docker.adoc[HOWTO: start service as docker container]
 
-docker ps # to determine if container is already running
-docker kill $CONTAINER_ID # if needed
+link:src/docs/howto-run-service.adoc[HOWTO: run service]
 
-docker pull vuzoll/vuzoll-ingest-vk-data:$TAG # to load specific image
-docker run -dit -v /data:/data -v /logs:/logs -p 8080:8080 vuzoll/vuzoll-ingest-vk-data:$TAG # to start specific image
-----
+link:src/docs/mongodb-setup.adoc[MongoDB setup]
 
-If you want to authorize your VK API access to be able to ingest secured data do the following:
+link:src/docs/vk-api-profile-fields.adoc[vk api profile fields]
 
-- Go to https://oauth.vk.com/authorize?client_id=5763182&scope=friends,offline&redirect_uri=https://oauth.vk.com/blank.html&display=page&response_type=token
-- You will be redirected to URL like https://oauth.vk.com/blank.html#access_token=ACCESS_TOKEN&expires_in=0&user_id=USER_ID
-- Copy ACCESS_TOKEN and USER_ID values
-- Use following docker config command to start
+link:src/docs/vk-ingested-profile-fields.adoc[vk ingested profile fields]
 
-[source,shell]
-----
-docker run -dit -v /data:/data -v /logs:/logs -e INGEST_VK_ACCESS_TOKEN=ACCESS_ID -e INGEST_VK_USER_ID=USER_ID -p 8080:8080 vuzoll/vuzoll-ingest-vk-data:$TAG
-----
-
-== HOWTO: run service
-
-POST to http://138.68.145.93:8080/ingest/bfs
-
-Following constaints are avaiable for POST body:
-
-[source]
-----
-{
-  "seedId": ?,
-  "timeLimit": ?, // like '1h28min17sec'
-  "ingestedLimit": ?,
-  "dataSizeLimit": 300
-}
-----
-
-Following environment variable are avaiable for global service configuration:
-
-INGEST_VK_DATA_FILE_PATH - path to data file (default is /data/vk.data)
-
-INGEST_VK_DEFAULT_SEED_ID - initial vk id to use if data file is empty
+link:src/docs/troubleshooting.adoc[Troubleshooting]

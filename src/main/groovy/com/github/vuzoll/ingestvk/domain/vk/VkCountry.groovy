@@ -1,11 +1,10 @@
-package com.github.vuzoll.ingestvk.domain
+package com.github.vuzoll.ingestvk.domain.vk
 
 import groovy.transform.EqualsAndHashCode
 
 @EqualsAndHashCode(includes = 'vkId')
-class Faculty {
+class VkCountry {
 
     Integer vkId
     String name
-    University university
 }

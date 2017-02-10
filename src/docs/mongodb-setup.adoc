@@ -1,0 +1,90 @@
+= MongoDB setup
+
+== Cleaning previously started container
+
+[source,shell]
+----
+docker ps -a
+docker kill vuzoll_mongo; docker rm vuzoll_mongo
+----
+
+== Cleaning data
+
+[source,shell]
+----
+rm -rf /data/mongodb
+----
+
+== Start mongo
+
+[source,shell]
+----
+docker pull mongo:3.4.1
+docker run --name vuzoll_mongo -v /data/mongodb:/data/db -d mongo:3.4.1 --auth
+----
+
+== Add admin user
+
+[source,shell]
+----
+docker exec -it vuzoll_mongo mongo admin
+----
+
+[source,shell]
+.Execute in mongo shell
+----
+db.createUser({ user: 'vuzollAdmin', pwd: '$PASSWORD', roles: [ { role: "userAdminAnyDatabase", db: "admin" } ] });
+----
+
+== Add root user
+
+[source,shell]
+----
+docker run -it --rm --link vuzoll_mongo:mongo mongo:3.4.1 mongo -u vuzollAdmin -p $PASSWORD --authenticationDatabase admin vuzoll_mongo/admin
+----
+
+[source,shell]
+.Execute in mongo shell
+----
+db.createUser({ user: 'vuzollRoot', pwd: '$PASSWORD', roles: [ { role: "root", db: "admin" } ] });
+----
+
+== Add service user
+
+[source,shell]
+----
+docker run -it --rm --link vuzoll_mongo:mongo mongo:3.4.1 mongo -u vuzollAdmin -p $PASSWORD --authenticationDatabase admin vuzoll_mongo/admin
+----
+
+[source,shell]
+.Execute in mongo shell
+----
+db.createUser({ user: 'ingestVkService', pwd: '$PASSWORD', roles: [ { role: "readWriteAnyDatabase", db: "admin" } ] });
+----
+
+== Connect externally
+
+[source,shell]
+----
+docker run -it --rm --link vuzoll_mongo:mongo mongo:3.4.1 mongo -u vuzollAdmin -p $PASSWORD --authenticationDatabase admin vuzoll_mongo/admin
+----
+
+[source,shell]
+----
+docker run -it --rm --link vuzoll_mongo:mongo mongo:3.4.1 mongo -u ingestVkService -p $PASSWORD --authenticationDatabase admin vuzoll_mongo/vuzoll
+----
+
+== Setup indexes
+
+[source,shell]
+----
+docker run -it --rm --link vuzoll_mongo:mongo mongo:3.4.1 mongo -u ingestVkService -p $PASSWORD --authenticationDatabase admin vuzoll_mongo/vuzoll
+----
+
+[source,shell]
+.Execute in mongo shell
+----
+db.vkProfile.getIndexes()
+db.vkProfile.createIndex({ vkId: 1 })
+db.vkProfile.createIndex({ ingestionIndex: 1 })
+----

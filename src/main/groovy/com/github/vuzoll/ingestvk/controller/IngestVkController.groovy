@@ -1,118 +1,99 @@
 package com.github.vuzoll.ingestvk.controller
 
-import com.github.vuzoll.ingestvk.domain.Country
-import com.github.vuzoll.ingestvk.domain.VkProfile
-import com.github.vuzoll.ingestvk.service.DataStorageService
-import com.github.vuzoll.ingestvk.service.VkService
+import com.github.vuzoll.ingestvk.domain.job.IngestJob
+import com.github.vuzoll.ingestvk.service.IngestJobsService
+import groovy.transform.TypeChecked
 import groovy.util.logging.Slf4j
-import org.joda.time.Period
-import org.joda.time.format.PeriodFormatter
-import org.joda.time.format.PeriodFormatterBuilder
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.web.bind.annotation.DeleteMapping
+import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RequestMethod
 import org.springframework.web.bind.annotation.ResponseBody
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @Slf4j
+@TypeChecked
 class IngestVkController {
 
-    static Integer DEFAULT_SEED_ID = Integer.parseInt(System.getenv('INGEST_VK_DEFAULT_SEED_ID') ?: '3542756')
-
-    static final PeriodFormatter TIME_LIMIT_FORMAT = new PeriodFormatterBuilder()
-            .appendHours().appendSuffix('h')
-            .appendMinutes().appendSuffix('min')
-            .appendSeconds().appendSuffix('sec')
-            .toFormatter()
-
     @Autowired
-    VkService vkService
+    IngestJobsService ingestJobsService
 
-    @Autowired
-    DataStorageService dataStorageService
+    @PostMapping(path = '/ingest')
+    @ResponseBody IngestJob ingest(@RequestBody IngestRequest ingestRequest) {
+        log.info "Receive ingest request: $ingestRequest"
 
-    @RequestMapping(path = '/ingest/bfs', method = RequestMethod.POST)
-    @ResponseBody IngestResponse ingestBfs(@RequestBody IngestRequest ingestRequest) {
-        log.info "Receive ingest request to use BFS: $ingestRequest"
-
-        long startTime = System.currentTimeMillis()
-        int index = 0
-        int ingestedCount = 0
-        Set<Integer> ids = []
-
-        String message
-
-        log.info 'Reading already ingested data...'
-        ids = dataStorageService.readAllIds()
-        if (ids.empty) {
-            Integer seedId = ingestRequest.seedId ?: DEFAULT_SEED_ID
-            log.warn "There is no ingested data so far. Will use id:$seedId as seed profile"
-
-            VkProfile seed = vkService.ingestVkUserById(seedId)
-            dataStorageService.insertProfile(seed)
-            ingestedCount++
-            ids.add(seedId)
+        IngestJob currentlyRunningJob = ingestJobsService.getCurrentlyRunningJob()
+        if (currentlyRunningJob != null) {
+            log.error "Service is busy with another job id=$currentlyRunningJob.id, can't accept new one"
+            throw new IllegalStateException("Service is busy with another job id=$currentlyRunningJob.id, can't accept new one")
         }
 
-        while (true) {
-            log.info "Handling position $index / ${ids.size()} in ingestion queue"
-            log.info "Ingestion already has taken ${toDurationString(System.currentTimeMillis() - startTime)}"
-            log.info "Current dataset size: ${ids.size()} records"
-            log.info "Already ingested: ${ingestedCount} records"
+        return ingestJobsService.startNewIngestJob(ingestRequest)
+    }
 
-            if (index >= ids.size()) {
-                message = 'Ingestion queue is empty'
-                log.info message
-                break
-            }
+    @GetMapping(path = '/ingest/{jobId}')
+    @ResponseBody IngestJob jobStatus(@PathVariable String jobId) {
+        IngestJob ingestJob = ingestJobsService.jobStatus(jobId)
+        if (ingestJob == null) {
+            return null
+        }
 
-            if (ingestRequest.timeLimit != null && System.currentTimeMillis() >= startTime + fromDurationString(ingestRequest.timeLimit)) {
-                message = 'Time limit is reached'
-                log.info message
-                break
-            }
+        if (ingestJob.ingestJobLogs != null) {
+            ingestJob.ingestJobLogs = ingestJob.ingestJobLogs.sort({ -it.timestamp }).take(20)
+        } else {
+            ingestJob.ingestJobLogs = []
+        }
 
-            if (ingestRequest.dataSizeLimit != null && ids.size() >= ingestRequest.dataSizeLimit) {
-                message = 'Dataset size limit is reached'
-                log.info message
-                break
-            }
+        return ingestJob
+    }
 
-            if (ingestRequest.ingestedLimit != null && ingestedCount >= ingestRequest.ingestedLimit) {
-                message = 'Ingested records limit is reached'
-                log.info message
-                break
-            }
+    @GetMapping(path = '/ingest/last')
+    @ResponseBody IngestJob lastJobStatus() {
+        IngestJob ingestJob = ingestJobsService.getLastJob()
+        if (ingestJob == null) {
+            return null
+        }
 
-            try {
-                List<Integer> friendsIds = vkService.getFriendsIds(ids[index])
-                friendsIds.findAll({
-                    !ids.contains(it)
-                }).each({
-                    log.debug "Found new profile id:$it"
-                    ids.add it
-                    VkProfile newProfile = vkService.ingestVkUserById(it)
-                    dataStorageService.insertProfile(newProfile)
-                    ingestedCount++
-                })
+        if (ingestJob.ingestJobLogs != null) {
+            ingestJob.ingestJobLogs = ingestJob.ingestJobLogs.sort({ -it.timestamp }).take(20)
+        } else {
+            ingestJob.ingestJobLogs = []
+        }
 
-                index++
-            } catch (e) {
-                message = "Error while ingesting data: ${e.message}"
-                log.error(message, e)
+        return ingestJob
+    }
+
+    @GetMapping(path = '/ingest/all')
+    @ResponseBody List<IngestJob> allJobsStatus() {
+        List<IngestJob> allJobs = ingestJobsService.allJobs()
+
+        allJobs.each { IngestJob ingestJob ->
+            if (ingestJob.ingestJobLogs != null) {
+                ingestJob.ingestJobLogs = ingestJob.ingestJobLogs.sort({ -it.timestamp })
+            } else {
+                ingestJob.ingestJobLogs = []
             }
         }
 
-        return new IngestResponse(timeTaken: toDurationString(System.currentTimeMillis() - startTime), recordsIngested: ingestedCount, recordsCount: ids.size(), message: message)
+        return allJobs
     }
 
-    static long fromDurationString(String durationAsString) {
-        TIME_LIMIT_FORMAT.parsePeriod(durationAsString).toStandardDuration().getStandardSeconds() * 1000
-    }
+    @DeleteMapping(path = '/ingest/last')
+    @ResponseBody IngestJob stopJob() {
+        IngestJob ingestJob = ingestJobsService.stopJob()
+        if (ingestJob == null) {
+            return null
+        }
 
-    static String toDurationString(long duration) {
-        TIME_LIMIT_FORMAT.print(new Period(duration))
+        if (ingestJob.ingestJobLogs != null) {
+            ingestJob.ingestJobLogs = ingestJob.ingestJobLogs.sort({ -it.timestamp }).take(20)
+        } else {
+            ingestJob.ingestJobLogs = []
+        }
+
+        return ingestJob
     }
 }
