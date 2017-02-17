@@ -100,8 +100,9 @@ class IngestVkService {
 
         Closure<Collection<Integer>> getSeedIds = { IngestJob ingestJob ->
             ingestJob.request.parameters.get('seedGroupsIds').split(',').collectMany { String groupId ->
-                log.info "JobId=${ingestJob.id}: use group with id=${groupId} as seed group..."
-                vkApiService.getGroupMembersIds(groupId)
+                Collection<Integer> groupMembersIds = vkApiService.getGroupMembersIds(groupId)
+                log.info "JobId=${ingestJob.id}: use group with id=${groupId} and ${groupMembersIds.size()} profiles as seed group..."
+                return groupMembersIds
             }
         }
 
