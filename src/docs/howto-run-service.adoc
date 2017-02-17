@@ -9,12 +9,13 @@ Following parameters are available for POST body:
 [source]
 ----
 {
-  "method": "bfs|randomized-bfs",
+  "method": "bfs|randomized-bfs|grouped-bfs",
   "timeLimit": '1h28min17sec',
   "ingestedLimit": 300,
   "dataSizeLimit": 300,
   "parameters": {
-    "seedId": 123456789,
+    "seedId": 123456789
+    "seedGroupsIds": "group1,group2"
   }
 }
 ----

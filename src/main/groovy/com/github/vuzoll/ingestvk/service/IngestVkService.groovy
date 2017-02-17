@@ -67,23 +67,56 @@ class IngestVkService {
     void bfsIngest(IngestJob jobToStart) {
         int indexToIngest = 0
 
-        ingest(jobToStart, { IngestJob ingestJob ->
+        Closure<Collection<Integer>> getSeedIds = { IngestJob ingestJob ->
+            [ Integer.parseInt(ingestJob.request.parameters?.getOrDefault('seedId', DEFAULT_SEED_ID) ?: DEFAULT_SEED_ID) ]
+        }
+
+        Closure<VkProfile> getNextProfileToIngest = { IngestJob ingestJob ->
             log.info "JobId=${ingestJob.id}: choosing profile for next ingestion iteration: ${indexToIngest} / ${ingestJob.datasetSize}"
             VkProfile nextProfileToIngest = vkProfileRepository.findOneByIngestionIndex(indexToIngest)
             indexToIngest++
             return nextProfileToIngest
-        })
+        }
+
+        ingest(jobToStart, getSeedIds, getNextProfileToIngest)
     }
 
     void randomizedBfsIngest(IngestJob jobToStart) {
-        ingest(jobToStart, { IngestJob ingestJob ->
+        Closure<Collection<Integer>> getSeedIds = { IngestJob ingestJob ->
+            [ Integer.parseInt(ingestJob.request.parameters?.getOrDefault('seedId', DEFAULT_SEED_ID) ?: DEFAULT_SEED_ID) ]
+        }
+
+        Closure<VkProfile> getNextProfileToIngest = { IngestJob ingestJob ->
             int randomVkProfileIndex = RandomUtils.nextInt(0, ingestJob.datasetSize)
             log.info "JobId=${ingestJob.id}: choosing random profile for next ingestion iteration: ${randomVkProfileIndex} / ${ingestJob.datasetSize}"
             return vkProfileRepository.findAll(new PageRequest(randomVkProfileIndex, 1)).content.first()
-        })
+        }
+
+        ingest(jobToStart, getSeedIds, getNextProfileToIngest)
     }
 
-    private void ingest(IngestJob ingestJob, Closure<VkProfile> getNextProfileToIngest) {
+    void groupedBfsIngest(IngestJob jobToStart) {
+        int indexToIngest = 0
+
+        Closure<Collection<Integer>> getSeedIds = { IngestJob ingestJob ->
+            ingestJob.request.parameters.get('seedGroupsIds').split(',').collectMany { String groupId ->
+                Collection<Integer> groupMembersIds = vkApiService.getGroupMembersIds(groupId)
+                log.info "JobId=${ingestJob.id}: use group with id=${groupId} and ${groupMembersIds.size()} profiles as seed group..."
+                return groupMembersIds
+            }
+        }
+
+        Closure<VkProfile> getNextProfileToIngest = { IngestJob ingestJob ->
+            log.info "JobId=${ingestJob.id}: choosing profile for next ingestion iteration: ${indexToIngest} / ${ingestJob.datasetSize}"
+            VkProfile nextProfileToIngest = vkProfileRepository.findOneByIngestionIndex(indexToIngest)
+            indexToIngest++
+            return nextProfileToIngest
+        }
+
+        ingest(jobToStart, getSeedIds, getNextProfileToIngest)
+    }
+
+    private void ingest(IngestJob ingestJob, Closure<Collection<Integer>> getSeedIds, Closure<VkProfile> getNextProfileToIngest) {
         try {
             ingestJob.startTimestamp = System.currentTimeMillis()
             ingestJob.startTime = LocalDateTime.now().toString()
@@ -124,30 +157,27 @@ class IngestVkService {
                     break
                 }
 
-                if (ingestJob.datasetSize == 0) {
-                    Integer seedId = Integer.parseInt(ingestJob.request.parameters?.getOrDefault('seedId', DEFAULT_SEED_ID) ?: DEFAULT_SEED_ID)
-                    log.warn "JobId=${ingestJob.id}: dataset is empty - using seed profile with id=$seedId to initialize it..."
-
-                    VkProfile seedProfile = toVkProfile(vkApiService.ingestVkProfileById(seedId))
-                    seedProfile.ingestionIndex = ingestionIndex
-                    vkProfileRepository.save seedProfile
-                    ingestionIndex++
-                    ingestJob.ingestedCount++
-                    ingestJob.datasetSize = vkProfileRepository.count()
-                    continue
-                }
-
-                VkProfile nextVkProfileToIngest = getNextProfileToIngest.call(ingestJob)
-
-                log.info "JobId=${ingestJob.id}: using profile with id=$nextVkProfileToIngest.vkId for the next ingestion iteration..."
-                log.info "JobId=${ingestJob.id}: profile with id=$nextVkProfileToIngest.vkId has ${nextVkProfileToIngest.friendsIds.size()} friends, finding new profiles..."
-                Collection<Integer> newProfileIds = nextVkProfileToIngest.friendsIds.findAll({ Integer friendVkId ->
-                    vkProfileRepository.findOneByVkId(friendVkId) == null
-                })
-                log.info "JobId=${ingestJob.id}: using profile with id=$nextVkProfileToIngest.vkId ${newProfileIds.size()} new profiles found, ingesting them..."
-
                 List<Integer> idsToIngest = new ArrayList<>()
-                idsToIngest.addAll(newProfileIds)
+                if (ingestJob.ingestedCount == 0) {
+                    log.info "JobId=${ingestJob.id}: ingestion just started - first will check seed profiles..."
+                    Collection<Integer> seedIds = getSeedIds.call(ingestJob)
+                    log.info "JobId=${ingestJob.id}: ingestion just started - generated ${seedIds.size()} seed profiles..."
+
+                    seedIds = seedIds.unique().findAll({ vkProfileRepository.findOneByVkId(it) == null })
+                    log.info "JobId=${ingestJob.id}: ingestion just started - ${seedIds.size()} unique profiles are not ingested yet..."
+
+                    idsToIngest.addAll(seedIds)
+                } else {
+                    VkProfile nextVkProfileToIngest = getNextProfileToIngest.call(ingestJob)
+                    log.info "JobId=${ingestJob.id}: using profile with id=$nextVkProfileToIngest.vkId for the next ingestion iteration..."
+                    log.info "JobId=${ingestJob.id}: profile with id=$nextVkProfileToIngest.vkId has ${nextVkProfileToIngest.friendsIds.size()} friends, finding new profiles..."
+                    Collection<Integer> newProfileIds = nextVkProfileToIngest.friendsIds.findAll({ Integer friendVkId ->
+                        vkProfileRepository.findOneByVkId(friendVkId) == null
+                    })
+                    log.info "JobId=${ingestJob.id}: using profile with id=$nextVkProfileToIngest.vkId ${newProfileIds.size()} new profiles found, ingesting them..."
+
+                    idsToIngest.addAll(newProfileIds)
+                }
                 while (!idsToIngest.empty) {
                     int lastIndex = Math.min(idsToIngest.size(), REQUEST_SIZE)
 
