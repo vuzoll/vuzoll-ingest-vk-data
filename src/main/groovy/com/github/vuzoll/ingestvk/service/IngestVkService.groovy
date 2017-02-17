@@ -159,6 +159,7 @@ class IngestVkService {
 
                 List<Integer> idsToIngest = new ArrayList<>()
                 if (ingestJob.ingestedCount == 0) {
+                    log.info "JobId=${ingestJob.id}: ingestion just started - first will check seed profiles..."
                     Collection<Integer> seedIds = getSeedIds.call(ingestJob)
                     log.info "JobId=${ingestJob.id}: ingestion just started - generated ${seedIds.size()} seed profiles..."
 
