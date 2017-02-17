@@ -88,7 +88,7 @@ class VkApiService {
                 return action.call()
             } catch (ApiTooManyException e) {
                 requestDelay += REQUEST_DELAY_DELTA
-                log.info "Failed to perform API request, set new delay to ${requestDelay}ms"
+                log.warn "Failed to perform API request, set new delay to ${requestDelay}ms"
             }
         }
     }
