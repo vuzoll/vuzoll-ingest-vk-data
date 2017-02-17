@@ -157,9 +157,12 @@ class IngestVkService {
                 }
 
                 List<Integer> idsToIngest = new ArrayList<>()
-                if (ingestJob.datasetSize == 0) {
-                    Collection<Integer> seedIds = getSeedIds.call(ingestJob).unique()
-                    log.info "JobId=${ingestJob.id}: dataset is empty - generated ${seedIds.size()} seed profiles to initialize it..."
+                if (ingestJob.ingestedCount == 0) {
+                    Collection<Integer> seedIds = getSeedIds.call(ingestJob)
+                    log.info "JobId=${ingestJob.id}: ingestion just started - generated ${seedIds.size()} seed profiles..."
+
+                    seedIds = seedIds.unique().findAll({ vkProfileRepository.findOneByVkId(it) == null })
+                    log.info "JobId=${ingestJob.id}: ingestion just started - ${seedIds.size()} unique profiles are not ingested yet..."
 
                     idsToIngest.addAll(seedIds)
                 } else {
