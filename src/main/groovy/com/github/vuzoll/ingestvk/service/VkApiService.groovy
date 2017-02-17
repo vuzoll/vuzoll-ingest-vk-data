@@ -33,14 +33,11 @@ class VkApiService {
             UserField.SEX,       UserField.TV,         UserField.UNIVERSITIES, UserField.VERIFIED
     ]
 
-    static final long INITIAL_REQUEST_DELAY = 400
-    static final long INITIAL_REQUEST_DELAY_DELTA = 10
+    static final long REQUEST_DELAY = 350
 
     VkApiClient vk = new VkApiClient(HttpTransportClient.getInstance())
 
     long lastRequestTimestamp = 0
-    long requestDelay = INITIAL_REQUEST_DELAY
-    long delayDelta = INITIAL_REQUEST_DELAY_DELTA
 
     UserFull ingestVkProfileById(Integer id) {
         ingestVkProfilesById([ id ]).first()
@@ -61,32 +58,34 @@ class VkApiService {
         return ensureRequestDelay({ doGetFriendsIds(id) })
     }
 
+    Collection<Integer> getGroupMembersIds(String groupId) {
+        log.debug "Getting members list of group id=$groupId..."
+
+        Collection<Integer> groupMembersIds = []
+
+        Integer groupMembersCount = ensureRequestDelay({ doGetGroupMembersCount(groupId) })
+        Integer offset = 0
+        while (offset < groupMembersCount) {
+            groupMembersIds.addAll ensureRequestDelay({ doGetGroupMembersIds(groupId, offset, MAX_REQUEST_SIZE) })
+            offset += MAX_REQUEST_SIZE
+        }
+
+        return groupMembersIds
+    }
+
     private <T> T ensureRequestDelay(Closure<T> action) {
         while (true) {
             long now = System.currentTimeMillis()
-            long neededDelay = requestDelay - now + lastRequestTimestamp
+            long neededDelay = REQUEST_DELAY - now + lastRequestTimestamp
             if (neededDelay > 0) {
                 log.debug "Delay ${neededDelay}ms is needed to satisfy vk api policies..."
                 Thread.sleep(neededDelay)
             }
 
             try {
-                T result = action.call()
-
-                if (neededDelay > 0 && delayDelta > 0) {
-                    requestDelay -= delayDelta
-                    log.info "Successfully performed API request, set new delay to ${requestDelay}ms"
-                }
-
-                return result
+                return action.call()
             } catch (ApiTooManyException e) {
-                requestDelay += (delayDelta + 1)
-                if (requestDelay < INITIAL_REQUEST_DELAY) {
-                    delayDelta /= 2
-                } else {
-                    delayDelta = INITIAL_REQUEST_DELAY_DELTA
-                }
-                log.info "Failed to perform API request, set new delay to ${requestDelay}ms"
+                log.warn "Perform too many API requests"
             }
         }
     }
@@ -124,6 +123,40 @@ class VkApiService {
         } catch (ApiUserDeletedException e) {
             log.debug("User with id=$id was deactivated", e)
             return []
+        }
+    }
+
+    Integer doGetGroupMembersCount(String groupId) {
+        try {
+            def vkRequest
+            if (VK_USER_ID && VK_ACCESS_TOKEN) {
+                vkRequest = vk.groups().getMembers(new UserActor(VK_USER_ID, VK_ACCESS_TOKEN))
+            } else {
+                vkRequest = vk.groups().getMembers()
+            }
+
+            lastRequestTimestamp = System.currentTimeMillis()
+            return vkRequest.groupId(groupId).execute().count
+        } catch (ApiAuthValidationException e) {
+            log.error("vk validation required - visit $e.redirectUri", e)
+            throw new RuntimeException("vk validation required - visit $e.redirectUri", e)
+        }
+    }
+
+    Collection<Integer> doGetGroupMembersIds(String groupId, Integer offset, Integer count) {
+        try {
+            def vkRequest
+            if (VK_USER_ID && VK_ACCESS_TOKEN) {
+                vkRequest = vk.groups().getMembers(new UserActor(VK_USER_ID, VK_ACCESS_TOKEN))
+            } else {
+                vkRequest = vk.groups().getMembers()
+            }
+
+            lastRequestTimestamp = System.currentTimeMillis()
+            return vkRequest.groupId(groupId).offset(offset).count(count).execute().items
+        } catch (ApiAuthValidationException e) {
+            log.error("vk validation required - visit $e.redirectUri", e)
+            throw new RuntimeException("vk validation required - visit $e.redirectUri", e)
         }
     }
 }
