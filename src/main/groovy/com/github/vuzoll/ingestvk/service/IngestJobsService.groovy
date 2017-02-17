@@ -74,6 +74,16 @@ class IngestJobsService {
             taskExecutor.execute({ ingestVkService.randomizedBfsIngest(startedJob) })
 
             return startedJob
+        } else if (ingestRequest.method == 'grouped-bfs') {
+            IngestJob startedJob = new IngestJob()
+            startedJob.request = ingestRequest
+            startedJob.status = JobStatus.RUNNING.toString()
+
+            startedJob = ingestJobRepository.save startedJob
+
+            taskExecutor.execute({ ingestVkService.groupedBfsIngest(startedJob) })
+
+            return startedJob
         } else {
             log.error "Unknown ingest method: $ingestRequest.method"
             throw new IllegalArgumentException("Unknown ingest method: $ingestRequest.method")
