@@ -72,7 +72,7 @@ class IngestVkService {
         }
 
         Closure<Boolean> shouldStop = { IngestJob ingestJob ->
-            indexToIngest >= ingestJob.datasetSize
+            indexToIngest > 0 && indexToIngest >= ingestJob.datasetSize
         }
 
         Closure<Boolean> acceptProfile = { true }
@@ -117,7 +117,7 @@ class IngestVkService {
         }
 
         Closure<Boolean> shouldStop = { IngestJob ingestJob ->
-            indexToIngest >= ingestJob.datasetSize
+            indexToIngest > 0 && indexToIngest >= ingestJob.datasetSize
         }
 
         Collection<Integer> universityIdsToAccept = jobToStart.request.parameters.get('universityIdsToAccept').split(',').collect(Integer.&parseInt)
