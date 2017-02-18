@@ -44,6 +44,6 @@ DELETE to http://<host>:<port>/ingested/profile
 
 == Service locations
 
-Development instance - 138.68.99.206:8080
+Development instance - 138.68.99.206:28001
 
-Production instance - 139.59.141.72:8080
+Production instance - 139.59.141.72:28001

@@ -33,7 +33,7 @@ class VkApiService {
             UserField.SEX,       UserField.TV,         UserField.UNIVERSITIES, UserField.VERIFIED
     ]
 
-    static final long INITIAL_REQUEST_DELAY = 333
+    static final long INITIAL_REQUEST_DELAY = 360
     static final long REQUEST_DELAY_DELTA = 1
 
     VkApiClient vk = new VkApiClient(HttpTransportClient.getInstance())
