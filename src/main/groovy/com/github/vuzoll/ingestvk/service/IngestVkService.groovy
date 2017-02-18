@@ -71,6 +71,12 @@ class IngestVkService {
             [ Integer.parseInt(ingestJob.request.parameters?.getOrDefault('seedId', DEFAULT_SEED_ID) ?: DEFAULT_SEED_ID) ]
         }
 
+        Closure<Boolean> shouldStop = { IngestJob ingestJob ->
+            indexToIngest > 0 && indexToIngest >= ingestJob.datasetSize
+        }
+
+        Closure<Boolean> acceptProfile = { true }
+
         Closure<VkProfile> getNextProfileToIngest = { IngestJob ingestJob ->
             log.info "JobId=${ingestJob.id}: choosing profile for next ingestion iteration: ${indexToIngest} / ${ingestJob.datasetSize}"
             VkProfile nextProfileToIngest = vkProfileRepository.findOneByIngestionIndex(indexToIngest)
@@ -78,7 +84,7 @@ class IngestVkService {
             return nextProfileToIngest
         }
 
-        ingest(jobToStart, getSeedIds, getNextProfileToIngest)
+        ingest(jobToStart, getSeedIds, getNextProfileToIngest, shouldStop, acceptProfile)
     }
 
     void randomizedBfsIngest(IngestJob jobToStart) {
@@ -86,13 +92,17 @@ class IngestVkService {
             [ Integer.parseInt(ingestJob.request.parameters?.getOrDefault('seedId', DEFAULT_SEED_ID) ?: DEFAULT_SEED_ID) ]
         }
 
+        Closure<Boolean> shouldStop = { false }
+
+        Closure<Boolean> acceptProfile = { true }
+
         Closure<VkProfile> getNextProfileToIngest = { IngestJob ingestJob ->
             int randomVkProfileIndex = RandomUtils.nextInt(0, ingestJob.datasetSize)
             log.info "JobId=${ingestJob.id}: choosing random profile for next ingestion iteration: ${randomVkProfileIndex} / ${ingestJob.datasetSize}"
             return vkProfileRepository.findAll(new PageRequest(randomVkProfileIndex, 1)).content.first()
         }
 
-        ingest(jobToStart, getSeedIds, getNextProfileToIngest)
+        ingest(jobToStart, getSeedIds, getNextProfileToIngest, shouldStop, acceptProfile)
     }
 
     void groupedBfsIngest(IngestJob jobToStart) {
@@ -106,6 +116,19 @@ class IngestVkService {
             }
         }
 
+        Closure<Boolean> shouldStop = { IngestJob ingestJob ->
+            indexToIngest > 0 && indexToIngest >= ingestJob.datasetSize
+        }
+
+        Collection<Integer> universityIdsToAccept = jobToStart.request.parameters.get('universityIdsToAccept').split(',').collect(Integer.&parseInt)
+        Closure<Boolean> acceptProfile = { IngestJob ingestJob, VkProfile profile ->
+            if (universityIdsToAccept.empty) {
+                return true
+            } else {
+                return (profile.universityRecords?.universityId?:[]).find({ universityIdsToAccept.contains(it) }) != null
+            }
+        }
+
         Closure<VkProfile> getNextProfileToIngest = { IngestJob ingestJob ->
             log.info "JobId=${ingestJob.id}: choosing profile for next ingestion iteration: ${indexToIngest} / ${ingestJob.datasetSize}"
             VkProfile nextProfileToIngest = vkProfileRepository.findOneByIngestionIndex(indexToIngest)
@@ -113,10 +136,10 @@ class IngestVkService {
             return nextProfileToIngest
         }
 
-        ingest(jobToStart, getSeedIds, getNextProfileToIngest)
+        ingest(jobToStart, getSeedIds, getNextProfileToIngest, shouldStop, acceptProfile)
     }
 
-    private void ingest(IngestJob ingestJob, Closure<Collection<Integer>> getSeedIds, Closure<VkProfile> getNextProfileToIngest) {
+    private void ingest(IngestJob ingestJob, Closure<Collection<Integer>> getSeedIds, Closure<VkProfile> getNextProfileToIngest, Closure<Boolean> shouldStop, Closure<Boolean> acceptProfile) {
         try {
             ingestJob.startTimestamp = System.currentTimeMillis()
             ingestJob.startTime = LocalDateTime.now().toString()
@@ -157,6 +180,12 @@ class IngestVkService {
                     break
                 }
 
+                if (shouldStop.call(ingestJob)) {
+                    ingestJob.message = 'ingestion finished successfully'
+                    log.info "JobId=${ingestJob.id}: ${ingestJob.message}"
+                    break
+                }
+
                 List<Integer> idsToIngest = new ArrayList<>()
                 if (ingestJob.ingestedCount == 0) {
                     log.info "JobId=${ingestJob.id}: ingestion just started - first will check seed profiles..."
@@ -178,15 +207,20 @@ class IngestVkService {
 
                     idsToIngest.addAll(newProfileIds)
                 }
+
                 while (!idsToIngest.empty) {
                     int lastIndex = Math.min(idsToIngest.size(), REQUEST_SIZE)
 
                     log.info "JobId=${ingestJob.id}: ingesting ${lastIndex} new profiles (${idsToIngest.size()} in the queue)..."
-                    Collection<UserFull> newProfiles = vkApiService.ingestVkProfilesById(idsToIngest.subList(0, lastIndex))
+                    Collection<VkProfile> profileToSave = vkApiService
+                            .ingestVkProfilesById(idsToIngest.subList(0, lastIndex))
+                            .collect(this.&toVkProfile)
+                            .findAll(acceptProfile.curry(ingestJob))
+                            .collect({ it.ingestionIndex = ingestionIndex; ingestionIndex++; return it })
 
-                    log.info "JobId=${ingestJob.id}: saving ${newProfiles.size()} new profiles to database..."
-                    vkProfileRepository.save( newProfiles.collect(this.&toVkProfile).collect({ it.ingestionIndex = ingestionIndex; ingestionIndex++; return it }) )
-                    ingestJob.ingestedCount += newProfiles.size()
+                    log.info "JobId=${ingestJob.id}: saving ${profileToSave.size()} new profiles to database..."
+                    vkProfileRepository.save(profileToSave)
+                    ingestJob.ingestedCount += profileToSave.size()
 
                     idsToIngest = idsToIngest.subList(lastIndex, idsToIngest.size())
 

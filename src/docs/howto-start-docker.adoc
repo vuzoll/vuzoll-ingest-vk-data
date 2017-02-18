@@ -37,7 +37,7 @@ INGEST_VK_VUZOLL_LOG_LEVEL - logging level for service code (default is INFO)
 [source,shell]
 ----
 docker pull vuzoll/vuzoll-ingest-vk-data:$TAG
-docker run -dit --name vuzoll_ingest_vk_data --link vuzoll_mongo -v /logs:/logs -e MONGO_PASSWORD=MONGODB_PASSWORD -p 8080:8080 vuzoll/vuzoll-ingest-vk-data:$TAG
+docker run -dit --name vuzoll_ingest_vk_data --link vuzoll_mongo -v /logs:/logs -e MONGO_PASSWORD=MONGODB_PASSWORD -p 28001:8080 vuzoll/vuzoll-ingest-vk-data:$TAG
 ----
 
 == Authorized start
@@ -52,5 +52,5 @@ If you want to authorize your VK API access to be able to ingest secured data do
 [source,shell]
 ----
 docker pull vuzoll/vuzoll-ingest-vk-data:$TAG
-docker run -dit --name vuzoll_ingest_vk_data --link vuzoll_mongo -v /logs:/logs -e MONGO_PASSWORD=MONGODB_PASSWORD -e INGEST_VK_ACCESS_TOKEN=ACCESS_ID -e INGEST_VK_USER_ID=USER_ID -p 8080:8080 vuzoll/vuzoll-ingest-vk-data:$TAG
+docker run -dit --name vuzoll_ingest_vk_data --link vuzoll_mongo -v /logs:/logs -e MONGO_PASSWORD=MONGODB_PASSWORD -e INGEST_VK_ACCESS_TOKEN=ACCESS_ID -e INGEST_VK_USER_ID=USER_ID -p 28001:8080 vuzoll/vuzoll-ingest-vk-data:$TAG
 ----
