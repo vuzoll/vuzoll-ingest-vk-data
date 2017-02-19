@@ -216,6 +216,7 @@ class IngestVkService {
                             .ingestVkProfilesById(idsToIngest.subList(0, lastIndex))
                             .collect(this.&toVkProfile)
                             .findAll(acceptProfile.curry(ingestJob))
+                            .collect(this.&loadAdditionalInformation)
                             .collect({ it.ingestionIndex = ingestionIndex; ingestionIndex++; return it })
 
                     log.info "JobId=${ingestJob.id}: saving ${profileToSave.size()} new profiles to database..."
@@ -286,8 +287,6 @@ class IngestVkService {
         vkProfile.screenName = vkApiUser.screenName
         vkProfile.site = vkApiUser.site
 
-        vkProfile.friendsIds = vkApiService.getFriendsIds(vkApiUser.id)
-
         vkProfile.ingestedTimestamp = System.currentTimeMillis()
 
         vkProfile.birthday = vkApiUser.bdate
@@ -323,6 +322,11 @@ class IngestVkService {
         vkProfile.relationStatus = vkApiUser.relation
         vkProfile.tvShows = vkApiUser.tv
 
+        return vkProfile
+    }
+
+    private VkProfile loadAdditionalInformation(VkProfile vkProfile) {
+        vkProfile.friendsIds = vkApiService.getFriendsIds(vkProfile.vkId)
         return vkProfile
     }
 

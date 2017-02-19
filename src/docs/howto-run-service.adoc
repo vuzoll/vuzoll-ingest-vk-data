@@ -15,7 +15,8 @@ Following parameters are available for POST body:
   "dataSizeLimit": 300,
   "parameters": {
     "seedId": 123456789
-    "seedGroupsIds": "group1,group2"
+    "seedGroupsIds": "group1,group2",
+    "universityIdsToAccept": "1,2,3"
   }
 }
 ----
