@@ -4,6 +4,7 @@ import com.vk.api.sdk.client.Lang
 import com.vk.api.sdk.client.VkApiClient
 import com.vk.api.sdk.client.actors.UserActor
 import com.vk.api.sdk.exceptions.ApiAuthValidationException
+import com.vk.api.sdk.exceptions.ApiServerException
 import com.vk.api.sdk.exceptions.ApiTooManyException
 import com.vk.api.sdk.exceptions.ApiUserDeletedException
 import com.vk.api.sdk.httpclient.HttpTransportClient
@@ -85,10 +86,13 @@ class VkApiService {
             }
 
             try {
+                lastRequestTimestamp = System.currentTimeMillis()
                 return action.call()
             } catch (ApiTooManyException e) {
                 requestDelay += REQUEST_DELAY_DELTA
-                log.warn "Failed to perform API request, set new delay to ${requestDelay}ms"
+                log.warn "Too many API requests performed, set new delay to ${requestDelay}ms"
+            } catch (ApiServerException e) {
+                log.warn "Failed to perform API request: ${e.message}"
             }
         }
     }
@@ -102,7 +106,6 @@ class VkApiService {
                 vkRequest = vk.users().get()
             }
 
-            lastRequestTimestamp = System.currentTimeMillis()
             vkRequest.userIds(ids.collect({ it.toString() })).fields(FIELDS_FOR_INGESTION).lang(Lang.UA).execute()
         } catch (ApiAuthValidationException e) {
             throw new RuntimeException("vk validation required - visit $e.redirectUri", e)
@@ -118,7 +121,6 @@ class VkApiService {
                 vkRequest = vk.friends().get()
             }
 
-            lastRequestTimestamp = System.currentTimeMillis()
             return vkRequest.userId(id).execute().items
         } catch (ApiAuthValidationException e) {
             log.error("vk validation required - visit $e.redirectUri", e)
@@ -138,7 +140,6 @@ class VkApiService {
                 vkRequest = vk.groups().getMembers()
             }
 
-            lastRequestTimestamp = System.currentTimeMillis()
             return vkRequest.groupId(groupId).execute().count
         } catch (ApiAuthValidationException e) {
             log.error("vk validation required - visit $e.redirectUri", e)
@@ -155,7 +156,6 @@ class VkApiService {
                 vkRequest = vk.groups().getMembers()
             }
 
-            lastRequestTimestamp = System.currentTimeMillis()
             return vkRequest.groupId(groupId).offset(offset).count(count).execute().items
         } catch (ApiAuthValidationException e) {
             log.error("vk validation required - visit $e.redirectUri", e)
