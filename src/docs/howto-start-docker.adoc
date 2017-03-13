@@ -12,8 +12,6 @@ docker kill vuzoll_ingest_vk_data; docker rm vuzoll_ingest_vk_data
 
 Following environment variable are available for global service configuration:
 
-INGEST_VK_DEFAULT_SEED_ID - initial vk id to use if data file is empty
-
 MONGO_DATABASE_NAME - mongodb database name to use (default is vuzoll)
 
 MONGO_AUTH_DATABASE_NAME - mongodb database name used for authentication (default is admin)
@@ -26,18 +24,20 @@ MONGO_USERNAME - username for authentication to mongodb (default is ingestVkServ
 
 MONGO_PASSWORD - password for authentication to mongodb
 
-INGEST_VK_REQUEST_SIZE - number of records to ingest in one request (default is 1000)
+VK_API_ACCESS_TOKEN, VK_API_USER_ID - VK API credentials
 
-INGEST_VK_ROOT_LOG_LEVEL - logging level for third-party libraries (default is INFO)
+VK_API_REQUEST_SIZE - number of records to ingest in one request (default is 1000)
 
-INGEST_VK_VUZOLL_LOG_LEVEL - logging level for service code (default is INFO)
+ROOT_LOG_LEVEL - logging level for third-party libraries (default is INFO)
+
+VUZOLL_LOG_LEVEL - logging level for service code (default is INFO)
 
 == Unauthorized start
 
 [source,shell]
 ----
-docker pull vuzoll/vuzoll-ingest-vk-data:$TAG
-docker run -dit --name vuzoll_ingest_vk_data --link vuzoll_mongo -v /logs:/logs -e MONGO_PASSWORD=MONGODB_PASSWORD -p 28001:8080 vuzoll/vuzoll-ingest-vk-data:$TAG
+docker pull vuzoll/vuzoll-ingest-vk-data:?TAG
+docker run -dit --name vuzoll_ingest_vk_data --link vuzoll_mongo -v /logs:/logs -e MONGO_PASSWORD=?MONGO_PASSWORD -p 28001:8080 vuzoll/vuzoll-ingest-vk-data:?TAG
 ----
 
 == Authorized start
@@ -51,6 +51,6 @@ If you want to authorize your VK API access to be able to ingest secured data do
 
 [source,shell]
 ----
-docker pull vuzoll/vuzoll-ingest-vk-data:$TAG
-docker run -dit --name vuzoll_ingest_vk_data --link vuzoll_mongo -v /logs:/logs -e MONGO_PASSWORD=MONGODB_PASSWORD -e INGEST_VK_ACCESS_TOKEN=ACCESS_ID -e INGEST_VK_USER_ID=USER_ID -p 28001:8080 vuzoll/vuzoll-ingest-vk-data:$TAG
+docker pull vuzoll/vuzoll-ingest-vk-data:?TAG
+docker run -dit --name vuzoll_ingest_vk_data --link vuzoll_mongo -v /logs:/logs -e MONGO_PASSWORD=MONGODB_PASSWORD -e VK_API_ACCESS_TOKEN=ACCESS_ID -e VK_API_USER_ID=USER_ID -p 28001:8080 vuzoll/vuzoll-ingest-vk-data:?TAG
 ----

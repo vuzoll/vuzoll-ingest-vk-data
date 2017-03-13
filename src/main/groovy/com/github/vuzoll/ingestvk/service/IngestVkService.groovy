@@ -32,7 +32,7 @@ import org.springframework.stereotype.Service
 @Service
 class IngestVkService {
 
-    static final Integer REQUEST_SIZE = Integer.parseInt(System.getenv('INGEST_VK_REQUEST_SIZE') ?: '100')
+    static final Integer REQUEST_SIZE = Integer.parseInt(System.getenv('VK_API_REQUEST_SIZE') ?: '100')
 
     @Autowired
     VkProfileRepository vkProfileRepository

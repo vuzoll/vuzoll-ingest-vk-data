@@ -33,52 +33,52 @@ docker exec -it vuzoll_mongo mongo admin
 [source,shell]
 .Execute in mongo shell
 ----
-db.createUser({ user: 'vuzollAdmin', pwd: '$PASSWORD', roles: [ { role: "userAdminAnyDatabase", db: "admin" } ] });
+db.createUser({ user: 'vuzollAdmin', pwd: '?PASSWORD', roles: [ { role: "userAdminAnyDatabase", db: "admin" } ] });
 ----
 
 == Add root user
 
 [source,shell]
 ----
-docker run -it --rm --link vuzoll_mongo:mongo mongo:3.4.1 mongo -u vuzollAdmin -p $PASSWORD --authenticationDatabase admin vuzoll_mongo/admin
+docker run -it --rm --link vuzoll_mongo:mongo mongo:3.4.1 mongo -u vuzollAdmin -p ?PASSWORD --authenticationDatabase admin vuzoll_mongo/admin
 ----
 
 [source,shell]
 .Execute in mongo shell
 ----
-db.createUser({ user: 'vuzollRoot', pwd: '$PASSWORD', roles: [ { role: "root", db: "admin" } ] });
+db.createUser({ user: 'vuzollRoot', pwd: '?PASSWORD', roles: [ { role: "root", db: "admin" } ] });
 ----
 
 == Add service user
 
 [source,shell]
 ----
-docker run -it --rm --link vuzoll_mongo:mongo mongo:3.4.1 mongo -u vuzollAdmin -p $PASSWORD --authenticationDatabase admin vuzoll_mongo/admin
+docker run -it --rm --link vuzoll_mongo:mongo mongo:3.4.1 mongo -u vuzollAdmin -p ?PASSWORD --authenticationDatabase admin vuzoll_mongo/admin
 ----
 
 [source,shell]
 .Execute in mongo shell
 ----
-db.createUser({ user: 'ingestVkService', pwd: '$PASSWORD', roles: [ { role: "readWriteAnyDatabase", db: "admin" } ] });
+db.createUser({ user: 'ingestVkService', pwd: '?PASSWORD', roles: [ { role: "readWriteAnyDatabase", db: "admin" } ] });
 ----
 
 == Connect externally
 
 [source,shell]
 ----
-docker run -it --rm --link vuzoll_mongo:mongo mongo:3.4.1 mongo -u vuzollAdmin -p $PASSWORD --authenticationDatabase admin vuzoll_mongo/admin
+docker run -it --rm --link vuzoll_mongo:mongo mongo:3.4.1 mongo -u vuzollAdmin -p ?PASSWORD --authenticationDatabase admin vuzoll_mongo/admin
 ----
 
 [source,shell]
 ----
-docker run -it --rm --link vuzoll_mongo:mongo mongo:3.4.1 mongo -u ingestVkService -p $PASSWORD --authenticationDatabase admin vuzoll_mongo/vuzoll
+docker run -it --rm --link vuzoll_mongo:mongo mongo:3.4.1 mongo -u ingestVkService -p ?PASSWORD --authenticationDatabase admin vuzoll_mongo/vuzoll
 ----
 
 == Setup indexes
 
 [source,shell]
 ----
-docker run -it --rm --link vuzoll_mongo:mongo mongo:3.4.1 mongo -u ingestVkService -p $PASSWORD --authenticationDatabase admin vuzoll_mongo/vuzoll
+docker run -it --rm --link vuzoll_mongo:mongo mongo:3.4.1 mongo -u ingestVkService -p ?PASSWORD --authenticationDatabase admin vuzoll_mongo/vuzoll
 ----
 
 [source,shell]
@@ -87,4 +87,5 @@ docker run -it --rm --link vuzoll_mongo:mongo mongo:3.4.1 mongo -u ingestVkServi
 db.vkProfile.getIndexes()
 db.vkProfile.createIndex({ vkId: 1 })
 db.vkProfile.createIndex({ ingestionIndex: 1 })
+db.vkProfile.createIndex({ datasetName: 1 })
 ----
