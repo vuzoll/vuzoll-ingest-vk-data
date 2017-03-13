@@ -298,6 +298,7 @@ class IngestVkService {
 
             VkCareerRecord vkCareerRecord = new VkCareerRecord()
             vkCareerRecord.groupId = vkApiCareer.groupId
+            vkCareerRecord.company = vkApiCareer.company
             vkCareerRecord.countryId = vkApiCareer.countryId
             vkCareerRecord.cityId = vkApiCareer.cityId
             vkCareerRecord.from = vkApiCareer.from

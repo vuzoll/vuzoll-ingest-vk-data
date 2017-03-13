@@ -38,6 +38,8 @@ buildScan {
     licenseAgree = 'yes'
 }
 
+apply plugin: 'application'
+
 bootRepackage {
     mainClass = 'com.github.vuzoll.ingestvk.Application'
 }

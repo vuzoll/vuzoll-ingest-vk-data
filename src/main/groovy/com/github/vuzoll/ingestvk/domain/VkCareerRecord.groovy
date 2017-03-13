@@ -6,6 +6,7 @@ import groovy.transform.EqualsAndHashCode
 class VkCareerRecord {
 
     Integer groupId
+    String company
     Integer countryId
     Integer cityId
     Integer from
