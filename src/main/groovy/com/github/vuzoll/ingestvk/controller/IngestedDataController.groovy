@@ -1,7 +1,7 @@
 package com.github.vuzoll.ingestvk.controller
 
-import com.github.vuzoll.ingestvk.domain.vk.VkProfile
-import com.github.vuzoll.ingestvk.repository.vk.VkProfileRepository
+import com.github.vuzoll.ingestvk.domain.VkProfile
+import com.github.vuzoll.ingestvk.repository.VkProfileRepository
 import groovy.util.logging.Slf4j
 import org.apache.commons.lang3.RandomUtils
 import org.springframework.beans.factory.annotation.Autowired

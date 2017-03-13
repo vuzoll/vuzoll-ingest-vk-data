@@ -1,4 +1,4 @@
-package com.github.vuzoll.ingestvk.domain.vk
+package com.github.vuzoll.ingestvk.domain
 
 import groovy.transform.EqualsAndHashCode
 import org.springframework.data.annotation.Id
