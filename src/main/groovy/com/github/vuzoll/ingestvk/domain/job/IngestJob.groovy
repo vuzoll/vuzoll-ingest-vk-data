@@ -1,6 +1,6 @@
 package com.github.vuzoll.ingestvk.domain.job
 
-import com.github.vuzoll.ingestvk.controller.IngestRequest
+
 import org.springframework.data.annotation.Id
 
 class IngestJob {

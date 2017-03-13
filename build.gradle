@@ -1,6 +1,6 @@
 plugins {
     id 'com.gradle.build-scan' version '1.4'
-    id 'org.springframework.boot' version '1.4.3.RELEASE'
+    id 'org.springframework.boot' version '1.5.2.RELEASE'
 }
 
 apply plugin: 'groovy'
@@ -9,6 +9,7 @@ apply plugin: 'idea'
 version = '0.6-SNAPSHOT'
 
 repositories {
+    mavenLocal()
     jcenter()
 }
 
@@ -17,6 +18,8 @@ dependencies {
 
     compile 'org.springframework.boot:spring-boot-starter-web'
     compile 'org.springframework.data:spring-data-mongodb'
+
+    compile 'com.github.vuzoll:vuzoll-tasks-manager-starter:0.1-SNAPSHOT'
 
     compile 'org.slf4j:slf4j-api'
     compile 'ch.qos.logback:logback-classic'
@@ -33,5 +36,6 @@ buildScan {
     licenseAgree = 'yes'
 }
 
-apply plugin: 'application'
-mainClassName = 'com.github.vuzoll.ingestvk.Application'
+bootRepackage {
+    mainClass = 'com.github.vuzoll.ingestvk.Application'
+}

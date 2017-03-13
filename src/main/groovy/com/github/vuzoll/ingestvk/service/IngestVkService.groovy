@@ -16,6 +16,7 @@ import com.github.vuzoll.ingestvk.domain.vk.VkSchoolRecord
 import com.github.vuzoll.ingestvk.domain.vk.VkUniversityRecord
 import com.github.vuzoll.ingestvk.repository.job.IngestJobRepository
 import com.github.vuzoll.ingestvk.repository.vk.VkProfileRepository
+import com.github.vuzoll.tasks.service.DurableJob
 import com.vk.api.sdk.objects.base.BaseObject
 import com.vk.api.sdk.objects.base.Country
 import com.vk.api.sdk.objects.users.Career
@@ -63,6 +64,39 @@ class IngestVkService {
 
     @Autowired
     VkApiService vkApiService
+
+    DurableJob ingestUsingRandomizedBfsJob() {
+        new DurableJob('ingest vk data using randomized bfs') {
+
+            @Override
+            void doSomething(Closure statusUpdater) {
+                // ?
+                markFinished()
+            }
+        }
+    }
+
+    DurableJob ingestUsingBfsJob() {
+        new DurableJob('ingest vk data using bfs') {
+
+            @Override
+            void doSomething(Closure statusUpdater) {
+                // ?
+                markFinished()
+            }
+        }
+    }
+
+    DurableJob ingestUsingGroupBfsJob() {
+        new DurableJob('ingest vk data using group bfs') {
+
+            @Override
+            void doSomething(Closure statusUpdater) {
+                // ?
+                markFinished()
+            }
+        }
+    }
 
     void bfsIngest(IngestJob jobToStart) {
         int indexToIngest = 0
