@@ -39,7 +39,7 @@ class IngestVkController {
 
     @PostMapping(path = '/ingest/group-bfs/{datasetName}')
     @ResponseBody Job ingestUsingGroupBfs(@PathVariable String datasetName, @RequestBody IngestUsingGroupBfsRequest request) {
-        log.info "Receive request to start ingest using group bfs"
+        log.info "Receive request to start ingest using group bfs: ${request}"
 
         return jobsService.startJob(ingestVkService.ingestUsingGroupBfsJob(datasetName, request.seedGroupIds, request.universityIdsToAccept))
     }

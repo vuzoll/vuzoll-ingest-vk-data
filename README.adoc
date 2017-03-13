@@ -1,10 +1,14 @@
 = vuzoll-ingest-vk-data
 
-Microservice for generating exploration reports from vk data.
+Service for ingesting data from VK API.
 
-TravisCI - https://travis-ci.org/vuzoll/vuzoll-ingest-vk-data/
+== Travis job
 
-DockerHub - https://hub.docker.com/r/vuzoll/vuzoll-ingest-vk-data/
+image:https://travis-ci.org/vuzoll/vuzoll-ingest-vk-data.svg?branch=develop["Travis job", link="https://travis-ci.org/vuzoll/vuzoll-ingest-vk-data"]
+
+== Docker repository
+
+https://hub.docker.com/r/vuzoll/vuzoll-ingest-vk-data/
 
 == Documentation
 

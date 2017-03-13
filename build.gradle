@@ -1,5 +1,5 @@
 plugins {
-    id 'com.gradle.build-scan' version '1.4'
+    id 'com.gradle.build-scan' version '1.6'
     id 'org.springframework.boot' version '1.5.2.RELEASE'
 }
 
@@ -9,7 +9,9 @@ apply plugin: 'idea'
 version = '0.6-SNAPSHOT'
 
 repositories {
-    mavenLocal()
+    maven {
+        url 'https://dl.bintray.com/vuzoll/vuzoll-maven/'
+    }
     jcenter()
 }
 
@@ -19,7 +21,7 @@ dependencies {
     compile 'org.springframework.boot:spring-boot-starter-web'
     compile 'org.springframework.data:spring-data-mongodb'
 
-    compile 'com.github.vuzoll:vuzoll-tasks-manager-starter:0.1-SNAPSHOT'
+    compile 'com.github.vuzoll:vuzoll-tasks-manager-starter:0.1'
 
     compile 'org.slf4j:slf4j-api'
     compile 'ch.qos.logback:logback-classic'
@@ -28,7 +30,7 @@ dependencies {
 
     compile 'joda-time:joda-time'
 
-    compile 'com.vk.api:sdk:0.3.6'
+    compile 'com.vk.api:sdk:0.4.3'
 }
 
 buildScan {
