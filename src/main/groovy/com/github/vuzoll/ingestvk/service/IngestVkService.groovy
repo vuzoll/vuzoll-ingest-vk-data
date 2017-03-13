@@ -66,59 +66,82 @@ class IngestVkService {
     VkApiService vkApiService
 
     DurableJob ingestUsingRandomizedBfsJob() {
-        new DurableJob('ingest vk data using randomized bfs') {
+        new BasicIngestJob('ingest vk data using randomized bfs') {
 
             @Override
-            void doSomething(Closure statusUpdater) {
-                // ?
-                markFinished()
+            Collection<Integer> getSeedIds() {
+                [ seedId ]
+            }
+
+            @Override
+            VkProfile getNextProfileToIngest() {
+                return null
+            }
+
+            @Override
+            boolean acceptProfile(VkProfile vkProfile) {
+                return false
+            }
+
+            @Override
+            VkProfile processProfile(VkProfile vkProfile) {
+                return null
             }
         }
     }
 
-    DurableJob ingestUsingBfsJob() {
-        new DurableJob('ingest vk data using bfs') {
+    DurableJob ingestUsingBfsJob(String datasetName, int seedId) {
+        new BasicIngestJob('ingest vk data using bfs') {
+
+            int indexToIngest = 0
 
             @Override
-            void doSomething(Closure statusUpdater) {
-                // ?
-                markFinished()
+            Collection<Integer> getSeedIds() {
+                [ seedId ]
+            }
+
+            @Override
+            VkProfile getNextProfileToIngest() {
+                VkProfile nextProfileToIngest = vkProfileRepository.findOneByDatasetNameAndIngestionIndex(datasetName, indexToIngest)
+                indexToIngest++
+                return nextProfileToIngest
+            }
+
+            @Override
+            boolean acceptProfile(VkProfile vkProfile) {
+                true
+            }
+
+            @Override
+            VkProfile processProfile(VkProfile vkProfile) {
+                vkProfile.ingestionIndex = indexToIngest
             }
         }
     }
 
     DurableJob ingestUsingGroupBfsJob() {
-        new DurableJob('ingest vk data using group bfs') {
+        new BasicIngestJob('ingest vk data using group bfs') {
 
             @Override
-            void doSomething(Closure statusUpdater) {
-                // ?
-                markFinished()
+            Collection<Integer> getSeedIds() {
+                return null
+            }
+
+            @Override
+            VkProfile getNextProfileToIngest() {
+                return null
+            }
+
+            @Override
+            boolean acceptProfile(VkProfile vkProfile) {
+                return false
+            }
+
+            @Override
+            VkProfile processProfile(VkProfile vkProfile) {
+                return null
             }
         }
-    }
-
-    void bfsIngest(IngestJob jobToStart) {
-        int indexToIngest = 0
-
-        Closure<Collection<Integer>> getSeedIds = { IngestJob ingestJob ->
-            [ Integer.parseInt(ingestJob.request.parameters?.getOrDefault('seedId', DEFAULT_SEED_ID) ?: DEFAULT_SEED_ID) ]
-        }
-
-        Closure<Boolean> shouldStop = { IngestJob ingestJob ->
-            indexToIngest > 0 && indexToIngest >= ingestJob.datasetSize
-        }
-
-        Closure<Boolean> acceptProfile = { true }
-
-        Closure<VkProfile> getNextProfileToIngest = { IngestJob ingestJob ->
-            log.info "JobId=${ingestJob.id}: choosing profile for next ingestion iteration: ${indexToIngest} / ${ingestJob.datasetSize}"
-            VkProfile nextProfileToIngest = vkProfileRepository.findOneByIngestionIndex(indexToIngest)
-            indexToIngest++
-            return nextProfileToIngest
-        }
-
-        ingest(jobToStart, getSeedIds, getNextProfileToIngest, shouldStop, acceptProfile)
     }
 
     void randomizedBfsIngest(IngestJob jobToStart) {

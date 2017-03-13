@@ -16,6 +16,9 @@ class VkProfile {
     @Indexed
     Integer ingestionIndex
 
+    @Indexed
+    String datasetName
+
     String vkDomain
     Integer vkLastSeen
     Boolean vkActive
