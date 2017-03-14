@@ -1,6 +1,7 @@
 package com.github.vuzoll.ingestvk.service
 
 import com.github.vuzoll.ingestvk.domain.VkProfile
+import com.github.vuzoll.ingestvk.repository.VkProfileRepository
 import com.vk.api.sdk.objects.base.Sex
 import com.vk.api.sdk.objects.users.University
 import com.vk.api.sdk.objects.users.User
@@ -117,6 +118,272 @@ class IngestVkServiceSpec extends Specification {
                 universityId == universityId1
             }
         }
+    }
+
+    def 'DurableJob ingestUsingGroupBfsJob(String datasetName, Collection<String> seedGroupIds, Collection<Integer> universityIdsToAccept): ingestionIndexForNextRecord and indexOfRecordToIngestNext are used as expected when dataset is initially empty'() {
+        setup:
+        String datasetName = 'datasetName'
+
+        String seedGroupId1 = 'seed-group-1'
+        Collection<String> seedGroupIds = [ seedGroupId1 ]
+
+        Integer universityId1 = 28
+        Integer universityId2 = 1128
+        Collection<Integer> universityIdsToAccept = [ universityId1, universityId2 ]
+
+        VkProfile vkProfile = new VkProfile()
+
+        VkProfileRepository vkProfileRepository = Mock()
+        vkProfileRepository.findOneByDatasetNameAndIngestionIndex(_, _) >> vkProfile
+
+        IngestVkService ingestVkService = new IngestVkService()
+        ingestVkService.vkProfileRepository = vkProfileRepository
+
+        IngestVkService.BasicIngestJob ingestUsingGroupBfsJob = ingestVkService.ingestUsingGroupBfsJob(datasetName, seedGroupIds, universityIdsToAccept)
+
+        expect:
+        ingestUsingGroupBfsJob.indexOfRecordToIngestNext == 0
+
+        when:
+        vkProfile = ingestUsingGroupBfsJob.processProfile(simpleStatusUpdater(), vkProfile)
+
+        then:
+        vkProfile.ingestionIndex == 0
+
+        when:
+        vkProfile = ingestUsingGroupBfsJob.processProfile(simpleStatusUpdater(), vkProfile)
+
+        then:
+        vkProfile.ingestionIndex == 1
+
+        when:
+        ingestUsingGroupBfsJob.getNextProfileToIngest(simpleStatusUpdater())
+
+        then:
+        ingestUsingGroupBfsJob.indexOfRecordToIngestNext == 1
+
+        when:
+        ingestUsingGroupBfsJob.getNextProfileToIngest(simpleStatusUpdater())
+
+        then:
+        ingestUsingGroupBfsJob.indexOfRecordToIngestNext == 2
+
+        when:
+        ingestUsingGroupBfsJob.getNextProfileToIngest(simpleStatusUpdater())
+
+        then:
+        ingestUsingGroupBfsJob.indexOfRecordToIngestNext == 3
+
+        when:
+        vkProfile = ingestUsingGroupBfsJob.processProfile(simpleStatusUpdater(), vkProfile)
+
+        then:
+        vkProfile.ingestionIndex == 2
+
+        when:
+        vkProfile = ingestUsingGroupBfsJob.processProfile(simpleStatusUpdater(), vkProfile)
+
+        then:
+        vkProfile.ingestionIndex == 3
+    }
+
+    def 'DurableJob ingestUsingGroupBfsJob(String datasetName, Collection<String> seedGroupIds, Collection<Integer> universityIdsToAccept): ingestionIndexForNextRecord and indexOfRecordToIngestNext are used as expected when dataset is initially non-empty'() {
+        setup:
+        String datasetName = 'datasetName'
+
+        String seedGroupId1 = 'seed-group-1'
+        Collection<String> seedGroupIds = [ seedGroupId1 ]
+
+        Integer universityId1 = 28
+        Integer universityId2 = 1128
+        Collection<Integer> universityIdsToAccept = [ universityId1, universityId2 ]
+
+        VkProfile vkProfile = new VkProfile()
+
+        VkProfileRepository vkProfileRepository = Mock()
+        vkProfileRepository.countByDatasetName(datasetName) >> 5
+        vkProfileRepository.findOneByDatasetNameAndIngestionIndex(_, _) >> vkProfile
+
+        IngestVkService ingestVkService = new IngestVkService()
+        ingestVkService.vkProfileRepository = vkProfileRepository
+
+        IngestVkService.BasicIngestJob ingestUsingGroupBfsJob = ingestVkService.ingestUsingGroupBfsJob(datasetName, seedGroupIds, universityIdsToAccept)
+
+        when:
+        ingestUsingGroupBfsJob.initSelf(simpleStatusUpdater())
+
+        then:
+        ingestUsingGroupBfsJob.indexOfRecordToIngestNext == 0
+
+        when:
+        vkProfile = ingestUsingGroupBfsJob.processProfile(simpleStatusUpdater(), vkProfile)
+
+        then:
+        vkProfile.ingestionIndex == 5
+
+        when:
+        vkProfile = ingestUsingGroupBfsJob.processProfile(simpleStatusUpdater(), vkProfile)
+
+        then:
+        vkProfile.ingestionIndex == 6
+
+        when:
+        ingestUsingGroupBfsJob.getNextProfileToIngest(simpleStatusUpdater())
+
+        then:
+        ingestUsingGroupBfsJob.indexOfRecordToIngestNext == 1
+
+        when:
+        ingestUsingGroupBfsJob.getNextProfileToIngest(simpleStatusUpdater())
+
+        then:
+        ingestUsingGroupBfsJob.indexOfRecordToIngestNext == 2
+
+        when:
+        ingestUsingGroupBfsJob.getNextProfileToIngest(simpleStatusUpdater())
+
+        then:
+        ingestUsingGroupBfsJob.indexOfRecordToIngestNext == 3
+
+        when:
+        vkProfile = ingestUsingGroupBfsJob.processProfile(simpleStatusUpdater(), vkProfile)
+
+        then:
+        vkProfile.ingestionIndex == 7
+
+        when:
+        vkProfile = ingestUsingGroupBfsJob.processProfile(simpleStatusUpdater(), vkProfile)
+
+        then:
+        vkProfile.ingestionIndex == 8
+    }
+
+    def 'DurableJob ingestUsingBfsJob(String datasetName, Collection<String> seedGroupIds, Collection<Integer> universityIdsToAccept): ingestionIndexForNextRecord and indexOfRecordToIngestNext are used as expected when dataset is initially empty'() {
+        setup:
+        String datasetName = 'datasetName'
+
+        Integer seedId = 28
+
+        VkProfile vkProfile = new VkProfile()
+
+        VkProfileRepository vkProfileRepository = Mock()
+        vkProfileRepository.findOneByDatasetNameAndIngestionIndex(_, _) >> vkProfile
+
+        IngestVkService ingestVkService = new IngestVkService()
+        ingestVkService.vkProfileRepository = vkProfileRepository
+
+        IngestVkService.BasicIngestJob ingestUsingBfsJob = ingestVkService.ingestUsingBfsJob(datasetName, seedId)
+
+        expect:
+        ingestUsingBfsJob.indexOfRecordToIngestNext == 0
+
+        when:
+        vkProfile = ingestUsingBfsJob.processProfile(simpleStatusUpdater(), vkProfile)
+
+        then:
+        vkProfile.ingestionIndex == 0
+
+        when:
+        vkProfile = ingestUsingBfsJob.processProfile(simpleStatusUpdater(), vkProfile)
+
+        then:
+        vkProfile.ingestionIndex == 1
+
+        when:
+        ingestUsingBfsJob.getNextProfileToIngest(simpleStatusUpdater())
+
+        then:
+        ingestUsingBfsJob.indexOfRecordToIngestNext == 1
+
+        when:
+        ingestUsingBfsJob.getNextProfileToIngest(simpleStatusUpdater())
+
+        then:
+        ingestUsingBfsJob.indexOfRecordToIngestNext == 2
+
+        when:
+        ingestUsingBfsJob.getNextProfileToIngest(simpleStatusUpdater())
+
+        then:
+        ingestUsingBfsJob.indexOfRecordToIngestNext == 3
+
+        when:
+        vkProfile = ingestUsingBfsJob.processProfile(simpleStatusUpdater(), vkProfile)
+
+        then:
+        vkProfile.ingestionIndex == 2
+
+        when:
+        vkProfile = ingestUsingBfsJob.processProfile(simpleStatusUpdater(), vkProfile)
+
+        then:
+        vkProfile.ingestionIndex == 3
+    }
+
+    def 'DurableJob ingestUsingBfsJob(String datasetName, Collection<String> seedGroupIds, Collection<Integer> universityIdsToAccept): ingestionIndexForNextRecord and indexOfRecordToIngestNext are used as expected when dataset is initially non-empty'() {
+        setup:
+        String datasetName = 'datasetName'
+
+        Integer seedId = 28
+
+        VkProfile vkProfile = new VkProfile()
+
+        VkProfileRepository vkProfileRepository = Mock()
+        vkProfileRepository.countByDatasetName(datasetName) >> 5
+        vkProfileRepository.findOneByDatasetNameAndIngestionIndex(_, _) >> vkProfile
+
+        IngestVkService ingestVkService = new IngestVkService()
+        ingestVkService.vkProfileRepository = vkProfileRepository
+
+        IngestVkService.BasicIngestJob ingestUsingBfsJob = ingestVkService.ingestUsingBfsJob(datasetName, seedId)
+
+        when:
+        ingestUsingBfsJob.initSelf(simpleStatusUpdater())
+
+        then:
+        ingestUsingBfsJob.indexOfRecordToIngestNext == 0
+
+        when:
+        vkProfile = ingestUsingBfsJob.processProfile(simpleStatusUpdater(), vkProfile)
+
+        then:
+        vkProfile.ingestionIndex == 5
+
+        when:
+        vkProfile = ingestUsingBfsJob.processProfile(simpleStatusUpdater(), vkProfile)
+
+        then:
+        vkProfile.ingestionIndex == 6
+
+        when:
+        ingestUsingBfsJob.getNextProfileToIngest(simpleStatusUpdater())
+
+        then:
+        ingestUsingBfsJob.indexOfRecordToIngestNext == 1
+
+        when:
+        ingestUsingBfsJob.getNextProfileToIngest(simpleStatusUpdater())
+
+        then:
+        ingestUsingBfsJob.indexOfRecordToIngestNext == 2
+
+        when:
+        ingestUsingBfsJob.getNextProfileToIngest(simpleStatusUpdater())
+
+        then:
+        ingestUsingBfsJob.indexOfRecordToIngestNext == 3
+
+        when:
+        vkProfile = ingestUsingBfsJob.processProfile(simpleStatusUpdater(), vkProfile)
+
+        then:
+        vkProfile.ingestionIndex == 7
+
+        when:
+        vkProfile = ingestUsingBfsJob.processProfile(simpleStatusUpdater(), vkProfile)
+
+        then:
+        vkProfile.ingestionIndex == 8
     }
 
     void setProtectedField(Field field, object, value) {

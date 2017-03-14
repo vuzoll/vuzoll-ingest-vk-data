@@ -69,12 +69,14 @@ class IngestVkService {
     DurableJob ingestUsingBfsJob(String datasetName, Integer seedId) {
         new BasicIngestJob("ingest vk data into dataset=${datasetName} using bfs", datasetName) {
 
-            int indexToIngest
+            int indexOfRecordToIngestNext
+            int ingestionIndexForNextRecord
 
             @Override
             void initSelf(Closure statusUpdater) {
                 super.initSelf(statusUpdater)
-                indexToIngest = vkProfileRepository.countByDatasetName(datasetName)
+                indexOfRecordToIngestNext = 0
+                ingestionIndexForNextRecord = vkProfileRepository.countByDatasetName(datasetName)
             }
 
             @Override
@@ -84,8 +86,8 @@ class IngestVkService {
 
             @Override
             VkProfile getNextProfileToIngest(Closure statusUpdater) {
-                VkProfile nextProfileToIngest = vkProfileRepository.findOneByDatasetNameAndIngestionIndex(datasetName, indexToIngest)
-                indexToIngest++
+                VkProfile nextProfileToIngest = vkProfileRepository.findOneByDatasetNameAndIngestionIndex(datasetName, indexOfRecordToIngestNext)
+                indexOfRecordToIngestNext++
                 return nextProfileToIngest
             }
 
@@ -96,7 +98,8 @@ class IngestVkService {
 
             @Override
             VkProfile processProfile(Closure statusUpdater, VkProfile vkProfile) {
-                vkProfile.ingestionIndex = indexToIngest
+                vkProfile.ingestionIndex = ingestionIndexForNextRecord
+                ingestionIndexForNextRecord++
                 return vkProfile
             }
         }
@@ -105,12 +108,14 @@ class IngestVkService {
     DurableJob ingestUsingGroupBfsJob(String datasetName, Collection<String> seedGroupIds, Collection<Integer> universityIdsToAccept) {
         new BasicIngestJob("ingest vk data into dataset=${datasetName} using group bfs", datasetName) {
 
-            int indexToIngest
+            int indexOfRecordToIngestNext
+            int ingestionIndexForNextRecord
 
             @Override
             void initSelf(Closure statusUpdater) {
                 super.initSelf(statusUpdater)
-                indexToIngest = vkProfileRepository.countByDatasetName(datasetName)
+                indexOfRecordToIngestNext = 0
+                ingestionIndexForNextRecord = vkProfileRepository.countByDatasetName(datasetName)
             }
 
             @Override
@@ -124,8 +129,8 @@ class IngestVkService {
 
             @Override
             VkProfile getNextProfileToIngest(Closure statusUpdater) {
-                VkProfile nextProfileToIngest = vkProfileRepository.findOneByDatasetNameAndIngestionIndex(datasetName, indexToIngest)
-                indexToIngest++
+                VkProfile nextProfileToIngest = vkProfileRepository.findOneByDatasetNameAndIngestionIndex(datasetName, indexOfRecordToIngestNext)
+                indexOfRecordToIngestNext++
                 return nextProfileToIngest
             }
 
@@ -140,7 +145,8 @@ class IngestVkService {
 
             @Override
             VkProfile processProfile(Closure statusUpdater, VkProfile vkProfile) {
-                vkProfile.ingestionIndex = indexToIngest
+                vkProfile.ingestionIndex = ingestionIndexForNextRecord
+                ingestionIndexForNextRecord++
                 return vkProfile
             }
         }
