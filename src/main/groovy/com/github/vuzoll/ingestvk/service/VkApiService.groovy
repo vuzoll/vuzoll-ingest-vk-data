@@ -21,8 +21,8 @@ class VkApiService {
 
     static final int MAX_REQUEST_SIZE = 1000
 
-    static final Integer VK_USER_ID = System.getenv('INGEST_VK_USER_ID') ? Integer.parseInt(System.getenv('INGEST_VK_USER_ID')) : null
-    static final String VK_ACCESS_TOKEN = System.getenv('INGEST_VK_ACCESS_TOKEN')
+    static final Integer VK_USER_ID = System.getenv('VK_API_REQUEST_SIZE') ? Integer.parseInt(System.getenv('VK_API_REQUEST_SIZE')) : null
+    static final String VK_ACCESS_TOKEN = System.getenv('VK_API_ACCESS_TOKEN')
 
     static final List<UserField> FIELDS_FOR_INGESTION = [
             UserField.ABOUT,     UserField.ACTIVITIES, UserField.BDATE,        UserField.BOOKS,

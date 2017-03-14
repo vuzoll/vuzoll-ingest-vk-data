@@ -1,4 +1,4 @@
-package com.github.vuzoll.ingestvk.domain.vk
+package com.github.vuzoll.ingestvk.domain
 
 import groovy.transform.EqualsAndHashCode
 import org.springframework.data.annotation.Id
@@ -15,6 +15,9 @@ class VkProfile {
 
     @Indexed
     Integer ingestionIndex
+
+    @Indexed
+    String datasetName
 
     String vkDomain
     Integer vkLastSeen
@@ -36,7 +39,7 @@ class VkProfile {
     VkCity city
     VkCountry country
     String homeTown
-    Integer sex
+    String sex
 
     VkOccupation occupation
     Set<VkCareerRecord> careerRecords

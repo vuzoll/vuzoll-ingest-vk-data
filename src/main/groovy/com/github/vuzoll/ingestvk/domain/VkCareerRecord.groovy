@@ -1,4 +1,4 @@
-package com.github.vuzoll.ingestvk.domain.vk
+package com.github.vuzoll.ingestvk.domain
 
 import groovy.transform.EqualsAndHashCode
 
@@ -6,6 +6,7 @@ import groovy.transform.EqualsAndHashCode
 class VkCareerRecord {
 
     Integer groupId
+    String company
     Integer countryId
     Integer cityId
     Integer from
