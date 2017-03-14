@@ -1,9 +1,13 @@
 package com.github.vuzoll.ingestvk.service
 
 import com.github.vuzoll.ingestvk.domain.VkProfile
+import com.vk.api.sdk.objects.base.Sex
+import com.vk.api.sdk.objects.users.User
 import com.vk.api.sdk.objects.users.UserFull
 import com.vk.api.sdk.objects.users.UserMin
 import spock.lang.Specification
+
+import java.lang.reflect.Field
 
 class IngestVkServiceSpec extends Specification {
 
@@ -24,9 +28,8 @@ class IngestVkServiceSpec extends Specification {
         Integer userId2 = 2
 
         UserFull vkUser = new UserFull()
-        def userIdField = UserMin.getDeclaredField('id')
-        userIdField.setAccessible(true)
-        userIdField.set(vkUser, userId1)
+        setProtectedField(UserMin.getDeclaredField('id'), vkUser, userId1)
+        setProtectedField(User.getDeclaredField('sex'), vkUser, Sex.MALE)
         vkUser.university = universityId1
 
         VkApiService vkApiService = Mock()
@@ -48,6 +51,7 @@ class IngestVkServiceSpec extends Specification {
         with(profilesToSave[0]) {
             vkId == userId1
             datasetName == datasetName
+            sex == 'MALE'
             friendsIds.size() == 1
             friendsIds[0] == userId2
 
@@ -56,6 +60,11 @@ class IngestVkServiceSpec extends Specification {
                 universityId == universityId1
             }
         }
+    }
+
+    void setProtectedField(Field field, object, value) {
+        field.setAccessible(true)
+        field.set(object, value)
     }
 
     private Closure simpleStatusUpdater() {

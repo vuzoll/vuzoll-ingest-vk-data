@@ -39,7 +39,7 @@ class VkProfile {
     VkCity city
     VkCountry country
     String homeTown
-    Integer sex
+    String sex
 
     VkOccupation occupation
     Set<VkCareerRecord> careerRecords
