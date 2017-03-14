@@ -18,7 +18,7 @@ before_install:
 - chmod +x gradlew
 
 install:
-- "./gradlew build --scan"
+- "./gradlew build jacocoTestReport coveralls --scan"
 
 before_script:
 - docker login -e="$DOCKER_EMAIL" -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD"
@@ -29,9 +29,6 @@ script:
 - docker build -t $DOCKER_REPO:travis-$TRAVIS_BUILD_NUMBER .
 - docker tag $DOCKER_REPO:travis-$TRAVIS_BUILD_NUMBER $DOCKER_REPO:$TAG
 - docker push $DOCKER_REPO
-
-after_success:
-- "./gradlew jacocoTestReport coveralls --scan"
 
 notifications:
   slack:
