@@ -32,6 +32,8 @@ ROOT_LOG_LEVEL - logging level for third-party libraries (default is INFO)
 
 VUZOLL_LOG_LEVEL - logging level for service code (default is INFO)
 
+VK_API_LOG_LEVEL - logging level for VK API (default is WARN)
+
 == Unauthorized start
 
 [source,shell]

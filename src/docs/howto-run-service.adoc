@@ -2,8 +2,32 @@
 
 == Endpoints
 
+GET to http://{host}:{port}/job/{jobId} - get status of job wih id={jobId}
+
+GET to http://{host}:{port}/job/last - get status of last job
+
+GET to http://{host}:{port}/job/active - get status of currently active job
+
+GET to http://{host}:{port}/job - get list of all jobs
+
+DELETE to http://{host}:{port}/job/{jobId} - stop job with id={jobId}
+
+DELETE to http://{host}:{port}/job/active - stop currently active job
+
+
+POST to http://{host}:{port}/ingest/bfs/{datasetName}?seedId={seedId} - start bfs ingestion to dataset={datasetName} starting from profile with id={seedId}
+
+POST to http://{host}:{port}/ingest/randomized-bfs/{datasetName}?seedId={seedId} - start randomized bfs ingestion to dataset={datasetName} starting from profile with id={seedId}
+
+POST to http://{host}:{port}/ingest/group-bfs/{datasetName}
+----
+{
+    "seedGroupIds": [ ... ],
+    "universityIdsToAccept": [ ... ]
+}
+----
+start bfs ingestion to dataset={datasetName} starting from profile from groups with ids=${seedGroupIds} accepting only profiles from universities with id={universityIdsToAccept}
+
 == Service locations
 
-Development instance - 138.68.99.206:28001
-
-Production instance - 139.59.141.72:28001
+Production instance - http://46.101.123.160:28001
