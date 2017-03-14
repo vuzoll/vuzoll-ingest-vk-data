@@ -45,7 +45,7 @@ class IngestVkController {
     }
 
     @ToString(includeNames = true)
-    class IngestUsingGroupBfsRequest {
+    static class IngestUsingGroupBfsRequest {
 
         Collection<String> seedGroupIds
         Collection<Integer> universityIdsToAccept
