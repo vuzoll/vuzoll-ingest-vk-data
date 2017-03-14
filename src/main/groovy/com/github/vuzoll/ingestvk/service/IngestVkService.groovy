@@ -211,15 +211,17 @@ class IngestVkService {
             while (!idsToIngest.empty) {
                 int lastIndex = Math.min(idsToIngest.size(), REQUEST_SIZE)
 
-                statusUpdater publishRequired: true, message: "ingesting ${lastIndex} new profiles (${idsToIngest.size()} in the queue)..."
+                statusUpdater message: "ingesting ${lastIndex} new profiles (${idsToIngest.size()} in the queue)..."
                 Collection<VkProfile> profilesToSave = this.profilesToSave(statusUpdater, idsToIngest.subList(0, lastIndex))
 
-                statusUpdater publishRequired: true, message: "saving ${profilesToSave.size()} new profiles to database..."
+                statusUpdater message: "saving ${profilesToSave.size()} new profiles to database..."
                 vkProfileRepository.save(profilesToSave)
                 ingestedCount += profilesToSave.size()
 
                 idsToIngest = idsToIngest.subList(lastIndex, idsToIngest.size())
             }
+
+            statusUpdater publishRequired: true, message: "already ingested ${ingestedCount} profiles, current dataset size is ${vkProfileRepository.countByDatasetName(datasetName)}"
         }
 
         Collection<VkProfile> profilesToSave(Closure statusUpdater, Collection<Integer> idsToSave) {
