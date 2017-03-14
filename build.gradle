@@ -9,10 +9,11 @@ apply plugin: 'idea'
 version = '0.6-SNAPSHOT'
 
 repositories {
+    jcenter()
     maven {
         url 'https://dl.bintray.com/vuzoll/vuzoll-maven/'
     }
-    jcenter()
+    mavenLocal()
 }
 
 dependencies {
@@ -21,7 +22,7 @@ dependencies {
     compile 'org.springframework.boot:spring-boot-starter-web'
     compile 'org.springframework.data:spring-data-mongodb'
 
-    compile 'com.github.vuzoll:vuzoll-tasks-manager-starter:0.1'
+    compile 'com.github.vuzoll:vuzoll-tasks-manager-starter:0.2'
 
     compile 'org.slf4j:slf4j-api'
     compile 'ch.qos.logback:logback-classic'

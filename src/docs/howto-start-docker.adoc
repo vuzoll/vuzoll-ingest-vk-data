@@ -52,5 +52,5 @@ If you want to authorize your VK API access to be able to ingest secured data do
 [source,shell]
 ----
 docker pull vuzoll/vuzoll-ingest-vk-data:?TAG
-docker run -dit --name vuzoll_ingest_vk_data --link vuzoll_mongo -v /logs:/logs -e MONGO_PASSWORD=MONGODB_PASSWORD -e VK_API_ACCESS_TOKEN=ACCESS_ID -e VK_API_USER_ID=USER_ID -p 28001:8080 vuzoll/vuzoll-ingest-vk-data:?TAG
+docker run -dit --name vuzoll_ingest_vk_data --link vuzoll_mongo -v /logs:/logs -e MONGO_PASSWORD=?MONGO_PASSWORD -e VK_API_ACCESS_TOKEN=ACCESS_ID -e VK_API_USER_ID=USER_ID -p 28001:8080 vuzoll/vuzoll-ingest-vk-data:?TAG
 ----
