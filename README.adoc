@@ -10,10 +10,6 @@ image:https://travis-ci.org/vuzoll/vuzoll-ingest-vk-data.svg?branch=develop["Tra
 
 https://hub.docker.com/r/vuzoll/vuzoll-ingest-vk-data/
 
-== Code coverage
-
-image:https://coveralls.io/repos/github/vuzoll/vuzoll-ingest-vk-data/badge.svg?branch=develop["Coverage Status", link="https://coveralls.io/github/vuzoll/vuzoll-ingest-vk-data?branch=develop"]
-
 == Documentation
 
 link:src/docs/howto-start-docker.adoc[HOWTO: start service as docker container]
