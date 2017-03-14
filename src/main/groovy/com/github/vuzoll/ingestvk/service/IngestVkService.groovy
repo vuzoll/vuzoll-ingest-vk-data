@@ -134,7 +134,7 @@ class IngestVkService {
                 if (universityIdsToAccept.empty) {
                     return true
                 } else {
-                    return (vkProfile.universityRecords?.universityId?:[]).find({ universityIdsToAccept.contains(it) }) != null
+                    return (((vkProfile.universityRecords?.universityId?:[]).find({ universityIdsToAccept.contains(it) })) != null)
                 }
             }
 
@@ -206,22 +206,26 @@ class IngestVkService {
                 int lastIndex = Math.min(idsToIngest.size(), REQUEST_SIZE)
 
                 statusUpdater message: "ingesting ${lastIndex} new profiles (${idsToIngest.size()} in the queue)..."
-                Collection<VkProfile> profileToSave = vkApiService
-                        .ingestVkProfilesById(idsToIngest.subList(0, lastIndex))
-                        .collect(this.&toVkProfile.curry(datasetName))
-                        .findAll(this.&acceptProfile.curry(statusUpdater))
-                        .collect(this.&loadAdditionalInformation)
-                        .collect(this.&processProfile.curry(statusUpdater))
+                Collection<VkProfile> profilesToSave = this.profilesToSave(statusUpdater, idsToIngest.subList(0, lastIndex))
 
-                statusUpdater message: "saving ${profileToSave.size()} new profiles to database..."
-                vkProfileRepository.save(profileToSave)
-                ingestedCount += profileToSave.size()
+                statusUpdater message: "saving ${profilesToSave.size()} new profiles to database..."
+                vkProfileRepository.save(profilesToSave)
+                ingestedCount += profilesToSave.size()
 
                 idsToIngest = idsToIngest.subList(lastIndex, idsToIngest.size())
             }
         }
 
-        private VkProfile toVkProfile(String datasetName, UserFull vkApiUser) {
+        Collection<VkProfile> profilesToSave(Closure statusUpdater, Collection<Integer> idsToSave) {
+            vkApiService
+                    .ingestVkProfilesById(idsToSave)
+                    .collect(this.&toVkProfile)
+                    .findAll(this.&acceptProfile.curry(statusUpdater))
+                    .collect(this.&loadAdditionalInformation)
+                    .collect(this.&processProfile.curry(statusUpdater))
+        }
+
+        VkProfile toVkProfile(UserFull vkApiUser) {
             VkProfile vkProfile = new VkProfile()
             vkProfile.vkId = vkApiUser.id
             vkProfile.vkDomain = vkApiUser.domain
@@ -277,7 +281,7 @@ class IngestVkService {
             return vkProfile
         }
 
-        private VkProfile loadAdditionalInformation(VkProfile vkProfile) {
+        VkProfile loadAdditionalInformation(VkProfile vkProfile) {
             vkProfile.friendsIds = vkApiService.getFriendsIds(vkProfile.vkId)
             return vkProfile
         }
