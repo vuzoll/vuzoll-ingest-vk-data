@@ -289,13 +289,13 @@ class IngestVkService {
         Set<VkUniversityRecord> collectUniversityRecords(UserFull vkApiUser) {
             Set<VkUniversityRecord> universityRecords = vkApiUser.universities?.collect(this.&toVkUniversityRecord) ?: []
             if (universityRecords.isEmpty()) {
-                universityRecords.add(toVkUniversityRecord(vkApiUser))
+                universityRecords.add(toVkUniversityRecordFromUser(vkApiUser))
             }
 
             return universityRecords.findAll({ it != null })
         }
 
-        private VkCareerRecord toVkCareerRecord(Career vkApiCareer) {
+        VkCareerRecord toVkCareerRecord(Career vkApiCareer) {
             if (vkApiCareer == null) {
                 return null
             }
@@ -312,7 +312,7 @@ class IngestVkService {
             return vkCareerRecord
         }
 
-        private VkCity toVkCity(BaseObject vkApiCity) {
+        VkCity toVkCity(BaseObject vkApiCity) {
             if (vkApiCity == null) {
                 return null
             }
@@ -324,7 +324,7 @@ class IngestVkService {
             return vkCity
         }
 
-        private VkCountry toVkCountry(Country vkApiCountry) {
+        VkCountry toVkCountry(Country vkApiCountry) {
             if (vkApiCountry == null) {
                 return null
             }
@@ -336,7 +336,7 @@ class IngestVkService {
             return vkCountry
         }
 
-        private VkUniversityRecord toVkUniversityRecord(University vkApiUniversity) {
+        VkUniversityRecord toVkUniversityRecord(University vkApiUniversity) {
             if (vkApiUniversity == null) {
                 return null
             }
@@ -361,7 +361,7 @@ class IngestVkService {
             return vkUniversityRecord
         }
 
-        private VkUniversityRecord toVkUniversityRecord(UserFull vkApiUser) {
+        VkUniversityRecord toVkUniversityRecordFromUser(UserFull vkApiUser) {
             if (vkApiUser == null) {
                 return null
             }
@@ -382,7 +382,7 @@ class IngestVkService {
             return vkUniversityRecord
         }
 
-        private VkMilitaryRecord toVkMilitaryRecord(Military vkApiMilitary) {
+        VkMilitaryRecord toVkMilitaryRecord(Military vkApiMilitary) {
             if (vkApiMilitary == null) {
                 return null
             }
@@ -397,7 +397,7 @@ class IngestVkService {
             return vkMilitaryRecord
         }
 
-        private VkOccupation toVkOccupation(Occupation vkApiOccupation) {
+        VkOccupation toVkOccupation(Occupation vkApiOccupation) {
             if (vkApiOccupation == null) {
                 return null
             }
@@ -410,7 +410,7 @@ class IngestVkService {
             return vkOccupation
         }
 
-        private VkPersonalBelief toVkPersonalBelief(Personal vkApiPersonal) {
+        VkPersonalBelief toVkPersonalBelief(Personal vkApiPersonal) {
             if (vkApiPersonal == null) {
                 return null
             }
@@ -428,7 +428,7 @@ class IngestVkService {
             return vkPersonalBelief
         }
 
-        private VkRelative toVkRelative(Relative vkApiRelative) {
+        VkRelative toVkRelative(Relative vkApiRelative) {
             if (vkApiRelative == null) {
                 return null
             }
@@ -440,7 +440,7 @@ class IngestVkService {
             return vkRelative
         }
 
-        private VkSchoolRecord toVkSchoolRecord(School vkApiSchool) {
+        VkSchoolRecord toVkSchoolRecord(School vkApiSchool) {
             if (vkApiSchool == null) {
                 return null
             }
@@ -460,7 +460,7 @@ class IngestVkService {
             return vkSchoolRecord
         }
 
-        private VkRelationPartner toVkRelationPartner(UserMin vkApiRelationPartner) {
+        VkRelationPartner toVkRelationPartner(UserMin vkApiRelationPartner) {
             if (vkApiRelationPartner == null) {
                 return null
             }
