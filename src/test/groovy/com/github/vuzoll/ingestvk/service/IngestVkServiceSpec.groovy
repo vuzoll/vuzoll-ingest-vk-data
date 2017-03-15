@@ -386,6 +386,77 @@ class IngestVkServiceSpec extends Specification {
         vkProfile.ingestionIndex == 8
     }
 
+    def 'DurableJob ingestUsingBfsJob(String datasetName, Collection<String> seedGroupIds, Collection<Integer> universityIdsToAccept): finished works as expected'() {
+        setup:
+        String datasetName = 'datasetName'
+
+        Integer seedId = 28
+
+        VkProfileRepository vkProfileRepository = Mock()
+        vkProfileRepository.countByDatasetName(datasetName) >> 5
+
+        IngestVkService ingestVkService = new IngestVkService()
+        ingestVkService.vkProfileRepository = vkProfileRepository
+
+        IngestVkService.BasicIngestJob ingestUsingBfsJob = ingestVkService.ingestUsingBfsJob(datasetName, seedId)
+
+        when:
+        ingestUsingBfsJob.indexOfRecordToIngestNext = 4
+
+        then:
+        ingestUsingBfsJob.finished(simpleStatusUpdater()) == false
+
+        when:
+        ingestUsingBfsJob.indexOfRecordToIngestNext = 5
+
+        then:
+        ingestUsingBfsJob.finished(simpleStatusUpdater()) == true
+
+        when:
+        ingestUsingBfsJob.indexOfRecordToIngestNext = 6
+
+        then:
+        ingestUsingBfsJob.finished(simpleStatusUpdater()) == true
+    }
+
+    def 'DurableJob ingestUsingGroupBfsJob(String datasetName, Collection<String> seedGroupIds, Collection<Integer> universityIdsToAccept): finished works as expected'() {
+        setup:
+        String datasetName = 'datasetName'
+
+        String seedGroupId1 = 'seed-group-1'
+        Collection<String> seedGroupIds = [ seedGroupId1 ]
+
+        Integer universityId1 = 28
+        Integer universityId2 = 1128
+        Collection<Integer> universityIdsToAccept = [ universityId1, universityId2 ]
+
+        VkProfileRepository vkProfileRepository = Mock()
+        vkProfileRepository.countByDatasetName(datasetName) >> 5
+
+        IngestVkService ingestVkService = new IngestVkService()
+        ingestVkService.vkProfileRepository = vkProfileRepository
+
+        IngestVkService.BasicIngestJob ingestUsingBfsJob = ingestVkService.ingestUsingGroupBfsJob(datasetName, seedGroupIds, universityIdsToAccept)
+
+        when:
+        ingestUsingBfsJob.indexOfRecordToIngestNext = 4
+
+        then:
+        ingestUsingBfsJob.finished(simpleStatusUpdater()) == false
+
+        when:
+        ingestUsingBfsJob.indexOfRecordToIngestNext = 5
+
+        then:
+        ingestUsingBfsJob.finished(simpleStatusUpdater()) == true
+
+        when:
+        ingestUsingBfsJob.indexOfRecordToIngestNext = 6
+
+        then:
+        ingestUsingBfsJob.finished(simpleStatusUpdater()) == true
+    }
+
     void setProtectedField(Field field, object, value) {
         field.setAccessible(true)
         field.set(object, value)
