@@ -457,6 +457,92 @@ class IngestVkServiceSpec extends Specification {
         ingestUsingBfsJob.finished(simpleStatusUpdater()) == true
     }
 
+    def 'DurableJob ingestUsingGroupBfsJob(String datasetName, Collection<String> seedGroupIds, Collection<Integer> universityIdsToAccept): seedsIngested works as expected'() {
+        setup:
+        String datasetName = 'datasetName'
+
+        String seedGroupId1 = 'seed-group-1'
+        Collection<String> seedGroupIds = [ seedGroupId1 ]
+
+        Integer universityId1 = 28
+        Integer universityId2 = 1128
+        Collection<Integer> universityIdsToAccept = [ universityId1, universityId2 ]
+
+        VkProfileRepository vkProfileRepository = Mock()
+
+        vkProfileRepository.countByDatasetName(datasetName) >> 5
+
+        Integer nextIngestId = 202
+        Integer idToIngest = 303
+        VkProfile vkProfile = new VkProfile(vkId: nextIngestId, friendsIds: [ idToIngest ])
+        vkProfileRepository.findOneByDatasetNameAndIngestionIndex(datasetName, _) >> vkProfile
+
+        VkApiService vkApiService = Mock()
+        Integer seedId = 101
+        vkApiService.getGroupMembersIds(seedGroupId1) >> [ seedId ]
+
+        IngestVkService ingestVkService = new IngestVkService()
+        ingestVkService.vkProfileRepository = vkProfileRepository
+        ingestVkService.vkApiService = vkApiService
+
+        IngestVkService.BasicIngestJob ingestUsingBfsJob = ingestVkService.ingestUsingGroupBfsJob(datasetName, seedGroupIds, universityIdsToAccept)
+
+        expect:
+        ingestUsingBfsJob.seedsIngested == false
+
+        when:
+        def idsToIngest = ingestUsingBfsJob.idsToIngest(simpleStatusUpdater())
+
+        then:
+        idsToIngest == [ seedId ]
+        ingestUsingBfsJob.seedsIngested == true
+
+        when:
+        idsToIngest = ingestUsingBfsJob.idsToIngest(simpleStatusUpdater())
+
+        then:
+        idsToIngest == [ idToIngest ]
+        ingestUsingBfsJob.seedsIngested == true
+    }
+
+    def 'DurableJob ingestUsingBfsJob(String datasetName, Collection<String> seedGroupIds, Collection<Integer> universityIdsToAccept): seedsIngested works as expected'() {
+        setup:
+        String datasetName = 'datasetName'
+
+        Integer seedId = 101
+
+        VkProfileRepository vkProfileRepository = Mock()
+
+        vkProfileRepository.countByDatasetName(datasetName) >> 5
+
+        Integer nextIngestId = 202
+        Integer idToIngest = 303
+        VkProfile vkProfile = new VkProfile(vkId: nextIngestId, friendsIds: [ idToIngest ])
+        vkProfileRepository.findOneByDatasetNameAndIngestionIndex(datasetName, _) >> vkProfile
+
+        IngestVkService ingestVkService = new IngestVkService()
+        ingestVkService.vkProfileRepository = vkProfileRepository
+
+        IngestVkService.BasicIngestJob ingestUsingBfsJob = ingestVkService.ingestUsingBfsJob(datasetName, seedId)
+
+        expect:
+        ingestUsingBfsJob.seedsIngested == false
+
+        when:
+        def idsToIngest = ingestUsingBfsJob.idsToIngest(simpleStatusUpdater())
+
+        then:
+        idsToIngest == [ seedId ]
+        ingestUsingBfsJob.seedsIngested == true
+
+        when:
+        idsToIngest = ingestUsingBfsJob.idsToIngest(simpleStatusUpdater())
+
+        then:
+        idsToIngest == [ idToIngest ]
+        ingestUsingBfsJob.seedsIngested == true
+    }
+
     void setProtectedField(Field field, object, value) {
         field.setAccessible(true)
         field.set(object, value)

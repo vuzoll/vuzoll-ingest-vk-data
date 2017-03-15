@@ -173,6 +173,7 @@ class IngestVkService {
         final String datasetName
 
         int ingestedCount
+        boolean seedsIngested
 
         BasicIngestJob(String jobName, String datasetName) {
             super(jobName)
@@ -194,31 +195,12 @@ class IngestVkService {
         @Override
         void initSelf(Closure statusUpdater) {
             ingestedCount = 0
+            seedsIngested = false
         }
 
         @Override
         void doSomething(Closure statusUpdater) {
-            List<Integer> idsToIngest = new ArrayList<>()
-            if (ingestedCount == 0) {
-                statusUpdater publish: 'optional', message: 'ingestion just started - first will check seed profiles...'
-                Collection<Integer> seedIds = getSeedIds(statusUpdater)
-                statusUpdater publish: 'always', message: "ingestion just started - generated ${seedIds.size()} seed profiles..."
-
-                seedIds = seedIds.unique().findAll({ vkProfileRepository.findOneByDatasetNameAndVkId(datasetName, it) == null })
-                statusUpdater publish: 'always', message: "ingestion just started - ${seedIds.size()} unique profiles are not ingested yet..."
-
-                idsToIngest.addAll(seedIds)
-            } else {
-                VkProfile nextVkProfileToIngest = getNextProfileToIngest(statusUpdater)
-                statusUpdater publish: 'optional', message: "using profile with id=${nextVkProfileToIngest.vkId} for the next ingestion iteration..."
-                statusUpdater publish: 'always', message: "profile with id=${nextVkProfileToIngest.vkId} has ${nextVkProfileToIngest.friendsIds.size()} friends, finding new profiles..."
-                Collection<Integer> newProfileIds = nextVkProfileToIngest.friendsIds.findAll({ Integer friendVkId ->
-                    vkProfileRepository.findOneByDatasetNameAndVkId(datasetName, friendVkId) == null
-                })
-                statusUpdater publish: 'always', message: "using profile with id=$nextVkProfileToIngest.vkId ${newProfileIds.size()} new profiles found, ingesting them..."
-
-                idsToIngest.addAll(newProfileIds)
-            }
+            List<Integer> idsToIngest = idsToIngest(statusUpdater)
 
             while (!idsToIngest.empty) {
                 int lastIndex = Math.min(idsToIngest.size(), REQUEST_SIZE)
@@ -239,6 +221,32 @@ class IngestVkService {
                 statusUpdater publish: 'always', message: 'ingestion finished successfully'
                 markFinished()
             }
+        }
+
+        List<Integer> idsToIngest(Closure statusUpdater) {
+            List<Integer> idsToIngest = new ArrayList<>()
+            if (!seedsIngested) {
+                statusUpdater publish: 'optional', message: 'ingestion just started - first will check seed profiles...'
+                Collection<Integer> seedIds = getSeedIds(statusUpdater)
+                statusUpdater publish: 'always', message: "ingestion just started - generated ${seedIds.size()} seed profiles..."
+
+                seedIds = seedIds.unique().findAll({ vkProfileRepository.findOneByDatasetNameAndVkId(datasetName, it) == null })
+                statusUpdater publish: 'always', message: "ingestion just started - ${seedIds.size()} unique profiles are not ingested yet..."
+
+                idsToIngest.addAll(seedIds)
+                seedsIngested = true
+            } else {
+                VkProfile nextVkProfileToIngest = getNextProfileToIngest(statusUpdater)
+                statusUpdater publish: 'optional', message: "using profile with id=${nextVkProfileToIngest.vkId} for the next ingestion iteration..."
+                statusUpdater publish: 'always', message: "profile with id=${nextVkProfileToIngest.vkId} has ${nextVkProfileToIngest.friendsIds.size()} friends, finding new profiles..."
+                Collection<Integer> newProfileIds = nextVkProfileToIngest.friendsIds.findAll({ Integer friendVkId ->
+                    vkProfileRepository.findOneByDatasetNameAndVkId(datasetName, friendVkId) == null
+                })
+                statusUpdater publish: 'always', message: "using profile with id=$nextVkProfileToIngest.vkId ${newProfileIds.size()} new profiles found, ingesting them..."
+
+                idsToIngest.addAll(newProfileIds)
+            }
+            return idsToIngest
         }
 
         Collection<VkProfile> profilesToSave(Closure statusUpdater, Collection<Integer> idsToSave) {
