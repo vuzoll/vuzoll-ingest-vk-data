@@ -49,7 +49,7 @@ class IngestVkServiceSpec extends Specification {
         IngestVkService.BasicIngestJob basicIngestJob = ingestVkService.ingestUsingGroupBfsJob(datasetName, seedGroupIds, universityIdsToAccept)
 
         when:
-        Collection<VkProfile> profilesToSave = basicIngestJob.profilesToSave(simpleStatusUpdater(), idsToSave)
+        Collection<VkProfile> profilesToSave = basicIngestJob.profilesToSave(idsToSave)
 
         then:
         noExceptionThrown()
@@ -100,7 +100,7 @@ class IngestVkServiceSpec extends Specification {
         IngestVkService.BasicIngestJob basicIngestJob = ingestVkService.ingestUsingGroupBfsJob(datasetName, seedGroupIds, universityIdsToAccept)
 
         when:
-        Collection<VkProfile> profilesToSave = basicIngestJob.profilesToSave(simpleStatusUpdater(), idsToSave)
+        Collection<VkProfile> profilesToSave = basicIngestJob.profilesToSave(idsToSave)
 
         then:
         noExceptionThrown()
@@ -145,43 +145,43 @@ class IngestVkServiceSpec extends Specification {
         ingestUsingGroupBfsJob.indexOfRecordToIngestNext == 0
 
         when:
-        vkProfile = ingestUsingGroupBfsJob.processProfile(simpleStatusUpdater(), vkProfile)
+        vkProfile = ingestUsingGroupBfsJob.processProfile(vkProfile)
 
         then:
         vkProfile.ingestionIndex == 0
 
         when:
-        vkProfile = ingestUsingGroupBfsJob.processProfile(simpleStatusUpdater(), vkProfile)
+        vkProfile = ingestUsingGroupBfsJob.processProfile(vkProfile)
 
         then:
         vkProfile.ingestionIndex == 1
 
         when:
-        ingestUsingGroupBfsJob.getNextProfileToIngest(simpleStatusUpdater())
+        ingestUsingGroupBfsJob.getNextProfileToIngest()
 
         then:
         ingestUsingGroupBfsJob.indexOfRecordToIngestNext == 1
 
         when:
-        ingestUsingGroupBfsJob.getNextProfileToIngest(simpleStatusUpdater())
+        ingestUsingGroupBfsJob.getNextProfileToIngest()
 
         then:
         ingestUsingGroupBfsJob.indexOfRecordToIngestNext == 2
 
         when:
-        ingestUsingGroupBfsJob.getNextProfileToIngest(simpleStatusUpdater())
+        ingestUsingGroupBfsJob.getNextProfileToIngest()
 
         then:
         ingestUsingGroupBfsJob.indexOfRecordToIngestNext == 3
 
         when:
-        vkProfile = ingestUsingGroupBfsJob.processProfile(simpleStatusUpdater(), vkProfile)
+        vkProfile = ingestUsingGroupBfsJob.processProfile(vkProfile)
 
         then:
         vkProfile.ingestionIndex == 2
 
         when:
-        vkProfile = ingestUsingGroupBfsJob.processProfile(simpleStatusUpdater(), vkProfile)
+        vkProfile = ingestUsingGroupBfsJob.processProfile(vkProfile)
 
         then:
         vkProfile.ingestionIndex == 3
@@ -210,49 +210,49 @@ class IngestVkServiceSpec extends Specification {
         IngestVkService.BasicIngestJob ingestUsingGroupBfsJob = ingestVkService.ingestUsingGroupBfsJob(datasetName, seedGroupIds, universityIdsToAccept)
 
         when:
-        ingestUsingGroupBfsJob.initSelf(simpleStatusUpdater())
+        ingestUsingGroupBfsJob.init()
 
         then:
         ingestUsingGroupBfsJob.indexOfRecordToIngestNext == 0
 
         when:
-        vkProfile = ingestUsingGroupBfsJob.processProfile(simpleStatusUpdater(), vkProfile)
+        vkProfile = ingestUsingGroupBfsJob.processProfile(vkProfile)
 
         then:
         vkProfile.ingestionIndex == 5
 
         when:
-        vkProfile = ingestUsingGroupBfsJob.processProfile(simpleStatusUpdater(), vkProfile)
+        vkProfile = ingestUsingGroupBfsJob.processProfile(vkProfile)
 
         then:
         vkProfile.ingestionIndex == 6
 
         when:
-        ingestUsingGroupBfsJob.getNextProfileToIngest(simpleStatusUpdater())
+        ingestUsingGroupBfsJob.getNextProfileToIngest()
 
         then:
         ingestUsingGroupBfsJob.indexOfRecordToIngestNext == 1
 
         when:
-        ingestUsingGroupBfsJob.getNextProfileToIngest(simpleStatusUpdater())
+        ingestUsingGroupBfsJob.getNextProfileToIngest()
 
         then:
         ingestUsingGroupBfsJob.indexOfRecordToIngestNext == 2
 
         when:
-        ingestUsingGroupBfsJob.getNextProfileToIngest(simpleStatusUpdater())
+        ingestUsingGroupBfsJob.getNextProfileToIngest()
 
         then:
         ingestUsingGroupBfsJob.indexOfRecordToIngestNext == 3
 
         when:
-        vkProfile = ingestUsingGroupBfsJob.processProfile(simpleStatusUpdater(), vkProfile)
+        vkProfile = ingestUsingGroupBfsJob.processProfile(vkProfile)
 
         then:
         vkProfile.ingestionIndex == 7
 
         when:
-        vkProfile = ingestUsingGroupBfsJob.processProfile(simpleStatusUpdater(), vkProfile)
+        vkProfile = ingestUsingGroupBfsJob.processProfile(vkProfile)
 
         then:
         vkProfile.ingestionIndex == 8
@@ -278,43 +278,43 @@ class IngestVkServiceSpec extends Specification {
         ingestUsingBfsJob.indexOfRecordToIngestNext == 0
 
         when:
-        vkProfile = ingestUsingBfsJob.processProfile(simpleStatusUpdater(), vkProfile)
+        vkProfile = ingestUsingBfsJob.processProfile(vkProfile)
 
         then:
         vkProfile.ingestionIndex == 0
 
         when:
-        vkProfile = ingestUsingBfsJob.processProfile(simpleStatusUpdater(), vkProfile)
+        vkProfile = ingestUsingBfsJob.processProfile(vkProfile)
 
         then:
         vkProfile.ingestionIndex == 1
 
         when:
-        ingestUsingBfsJob.getNextProfileToIngest(simpleStatusUpdater())
+        ingestUsingBfsJob.getNextProfileToIngest()
 
         then:
         ingestUsingBfsJob.indexOfRecordToIngestNext == 1
 
         when:
-        ingestUsingBfsJob.getNextProfileToIngest(simpleStatusUpdater())
+        ingestUsingBfsJob.getNextProfileToIngest()
 
         then:
         ingestUsingBfsJob.indexOfRecordToIngestNext == 2
 
         when:
-        ingestUsingBfsJob.getNextProfileToIngest(simpleStatusUpdater())
+        ingestUsingBfsJob.getNextProfileToIngest()
 
         then:
         ingestUsingBfsJob.indexOfRecordToIngestNext == 3
 
         when:
-        vkProfile = ingestUsingBfsJob.processProfile(simpleStatusUpdater(), vkProfile)
+        vkProfile = ingestUsingBfsJob.processProfile(vkProfile)
 
         then:
         vkProfile.ingestionIndex == 2
 
         when:
-        vkProfile = ingestUsingBfsJob.processProfile(simpleStatusUpdater(), vkProfile)
+        vkProfile = ingestUsingBfsJob.processProfile(vkProfile)
 
         then:
         vkProfile.ingestionIndex == 3
@@ -338,49 +338,49 @@ class IngestVkServiceSpec extends Specification {
         IngestVkService.BasicIngestJob ingestUsingBfsJob = ingestVkService.ingestUsingBfsJob(datasetName, seedId)
 
         when:
-        ingestUsingBfsJob.initSelf(simpleStatusUpdater())
+        ingestUsingBfsJob.init()
 
         then:
         ingestUsingBfsJob.indexOfRecordToIngestNext == 0
 
         when:
-        vkProfile = ingestUsingBfsJob.processProfile(simpleStatusUpdater(), vkProfile)
+        vkProfile = ingestUsingBfsJob.processProfile(vkProfile)
 
         then:
         vkProfile.ingestionIndex == 5
 
         when:
-        vkProfile = ingestUsingBfsJob.processProfile(simpleStatusUpdater(), vkProfile)
+        vkProfile = ingestUsingBfsJob.processProfile(vkProfile)
 
         then:
         vkProfile.ingestionIndex == 6
 
         when:
-        ingestUsingBfsJob.getNextProfileToIngest(simpleStatusUpdater())
+        ingestUsingBfsJob.getNextProfileToIngest()
 
         then:
         ingestUsingBfsJob.indexOfRecordToIngestNext == 1
 
         when:
-        ingestUsingBfsJob.getNextProfileToIngest(simpleStatusUpdater())
+        ingestUsingBfsJob.getNextProfileToIngest()
 
         then:
         ingestUsingBfsJob.indexOfRecordToIngestNext == 2
 
         when:
-        ingestUsingBfsJob.getNextProfileToIngest(simpleStatusUpdater())
+        ingestUsingBfsJob.getNextProfileToIngest()
 
         then:
         ingestUsingBfsJob.indexOfRecordToIngestNext == 3
 
         when:
-        vkProfile = ingestUsingBfsJob.processProfile(simpleStatusUpdater(), vkProfile)
+        vkProfile = ingestUsingBfsJob.processProfile(vkProfile)
 
         then:
         vkProfile.ingestionIndex == 7
 
         when:
-        vkProfile = ingestUsingBfsJob.processProfile(simpleStatusUpdater(), vkProfile)
+        vkProfile = ingestUsingBfsJob.processProfile(vkProfile)
 
         then:
         vkProfile.ingestionIndex == 8
@@ -404,19 +404,19 @@ class IngestVkServiceSpec extends Specification {
         ingestUsingBfsJob.indexOfRecordToIngestNext = 4
 
         then:
-        ingestUsingBfsJob.finished(simpleStatusUpdater()) == false
+        ingestUsingBfsJob.allProfilesIngested() == false
 
         when:
         ingestUsingBfsJob.indexOfRecordToIngestNext = 5
 
         then:
-        ingestUsingBfsJob.finished(simpleStatusUpdater()) == true
+        ingestUsingBfsJob.allProfilesIngested() == true
 
         when:
         ingestUsingBfsJob.indexOfRecordToIngestNext = 6
 
         then:
-        ingestUsingBfsJob.finished(simpleStatusUpdater()) == true
+        ingestUsingBfsJob.allProfilesIngested() == true
     }
 
     def 'DurableJob ingestUsingGroupBfsJob(String datasetName, Collection<String> seedGroupIds, Collection<Integer> universityIdsToAccept): finished works as expected'() {
@@ -442,19 +442,19 @@ class IngestVkServiceSpec extends Specification {
         ingestUsingBfsJob.indexOfRecordToIngestNext = 4
 
         then:
-        ingestUsingBfsJob.finished(simpleStatusUpdater()) == false
+        ingestUsingBfsJob.allProfilesIngested() == false
 
         when:
         ingestUsingBfsJob.indexOfRecordToIngestNext = 5
 
         then:
-        ingestUsingBfsJob.finished(simpleStatusUpdater()) == true
+        ingestUsingBfsJob.allProfilesIngested() == true
 
         when:
         ingestUsingBfsJob.indexOfRecordToIngestNext = 6
 
         then:
-        ingestUsingBfsJob.finished(simpleStatusUpdater()) == true
+        ingestUsingBfsJob.allProfilesIngested() == true
     }
 
     def 'DurableJob ingestUsingGroupBfsJob(String datasetName, Collection<String> seedGroupIds, Collection<Integer> universityIdsToAccept): seedsIngested works as expected'() {
@@ -491,14 +491,14 @@ class IngestVkServiceSpec extends Specification {
         ingestUsingBfsJob.seedsIngested == false
 
         when:
-        def idsToIngest = ingestUsingBfsJob.idsToIngest(simpleStatusUpdater())
+        def idsToIngest = ingestUsingBfsJob.idsToIngest()
 
         then:
         idsToIngest == [ seedId ]
         ingestUsingBfsJob.seedsIngested == true
 
         when:
-        idsToIngest = ingestUsingBfsJob.idsToIngest(simpleStatusUpdater())
+        idsToIngest = ingestUsingBfsJob.idsToIngest()
 
         then:
         idsToIngest == [ idToIngest ]
@@ -529,14 +529,14 @@ class IngestVkServiceSpec extends Specification {
         ingestUsingBfsJob.seedsIngested == false
 
         when:
-        def idsToIngest = ingestUsingBfsJob.idsToIngest(simpleStatusUpdater())
+        def idsToIngest = ingestUsingBfsJob.idsToIngest()
 
         then:
         idsToIngest == [ seedId ]
         ingestUsingBfsJob.seedsIngested == true
 
         when:
-        idsToIngest = ingestUsingBfsJob.idsToIngest(simpleStatusUpdater())
+        idsToIngest = ingestUsingBfsJob.idsToIngest()
 
         then:
         idsToIngest == [ idToIngest ]
@@ -546,9 +546,5 @@ class IngestVkServiceSpec extends Specification {
     void setProtectedField(Field field, object, value) {
         field.setAccessible(true)
         field.set(object, value)
-    }
-
-    private Closure simpleStatusUpdater() {
-        return { println it.message }
     }
 }

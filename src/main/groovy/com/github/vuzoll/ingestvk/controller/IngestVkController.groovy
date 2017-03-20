@@ -1,10 +1,10 @@
 package com.github.vuzoll.ingestvk.controller
 
 import com.github.vuzoll.ingestvk.service.IngestVkService
-import com.github.vuzoll.tasks.domain.Job
-import com.github.vuzoll.tasks.service.JobsService
 import groovy.transform.ToString
 import groovy.util.logging.Slf4j
+import io.github.yermilov.kerivnyk.domain.Job
+import io.github.yermilov.kerivnyk.service.KerivnykService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.RestController
 class IngestVkController {
 
     @Autowired
-    JobsService jobsService
+    KerivnykService kerivnykService
 
     @Autowired
     IngestVkService ingestVkService
@@ -27,21 +27,21 @@ class IngestVkController {
     @ResponseBody Job ingestUsingRandomizedBfs(@PathVariable String datasetName, @RequestParam('name') Integer seedId) {
         log.info "Receive request to start ingest using randomized bfs"
 
-        return jobsService.startJob(ingestVkService.ingestUsingRandomizedBfsJob(datasetName, seedId))
+        return kerivnykService.asyncStartJob(ingestVkService.ingestUsingRandomizedBfsJob(datasetName, seedId))
     }
 
     @PostMapping(path = '/ingest/bfs/{datasetName}')
     @ResponseBody Job ingestUsingBfs(@PathVariable String datasetName, @RequestParam('name') Integer seedId) {
         log.info "Receive request to start ingest using bfs"
 
-        return jobsService.startJob(ingestVkService.ingestUsingBfsJob(datasetName, seedId))
+        return kerivnykService.asyncStartJob(ingestVkService.ingestUsingBfsJob(datasetName, seedId))
     }
 
     @PostMapping(path = '/ingest/group-bfs/{datasetName}')
     @ResponseBody Job ingestUsingGroupBfs(@PathVariable String datasetName, @RequestBody IngestUsingGroupBfsRequest request) {
         log.info "Receive request to start ingest using group bfs: ${request}"
 
-        return jobsService.startJob(ingestVkService.ingestUsingGroupBfsJob(datasetName, request.seedGroupIds, request.universityIdsToAccept))
+        return kerivnykService.asyncStartJob(ingestVkService.ingestUsingGroupBfsJob(datasetName, request.seedGroupIds, request.universityIdsToAccept))
     }
 
     @ToString(includeNames = true)

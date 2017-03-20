@@ -5,7 +5,7 @@
 [source,shell]
 ----
 docker ps -a
-docker kill vuzoll_ingest_vk_data; docker rm vuzoll_ingest_vk_data
+docker kill vuzoll-ingest-vk-data; docker rm vuzoll-ingest-vk-data
 ----
 
 == Configuration parameters
@@ -16,7 +16,7 @@ MONGO_DATABASE_NAME - mongodb database name to use (default is vuzoll)
 
 MONGO_AUTH_DATABASE_NAME - mongodb database name used for authentication (default is admin)
 
-MONGO_HOST - host of mongodb instance (default is vuzoll_mongo)
+MONGO_HOST - host of mongodb instance (default is vuzoll-mongo)
 
 MONGO_PORT - port of mongodb instance (default is 27017)
 
@@ -39,7 +39,7 @@ VK_API_LOG_LEVEL - logging level for VK API (default is WARN)
 [source,shell]
 ----
 docker pull vuzoll/vuzoll-ingest-vk-data:?TAG
-docker run -dit --name vuzoll_ingest_vk_data --link vuzoll_mongo -v /logs:/logs -e MONGO_PASSWORD=?MONGO_PASSWORD -p 28001:8080 vuzoll/vuzoll-ingest-vk-data:?TAG
+docker run -dit --name vuzoll-ingest-vk-data --link vuzoll-mongo -v /logs:/logs -e MONGO_PASSWORD=?MONGO_PASSWORD -p 28001:8080 vuzoll/vuzoll-ingest-vk-data:?TAG
 ----
 
 == Authorized start
@@ -54,5 +54,5 @@ If you want to authorize your VK API access to be able to ingest secured data do
 [source,shell]
 ----
 docker pull vuzoll/vuzoll-ingest-vk-data:?TAG
-docker run -dit --name vuzoll_ingest_vk_data --link vuzoll_mongo -v /logs:/logs -e MONGO_PASSWORD=?MONGO_PASSWORD -e VK_API_ACCESS_TOKEN=ACCESS_ID -e VK_API_USER_ID=USER_ID -p 28001:8080 vuzoll/vuzoll-ingest-vk-data:?TAG
+docker run -dit --name vuzoll-ingest-vk-data --link vuzoll-mongo -v /logs:/logs -e MONGO_PASSWORD=?MONGO_PASSWORD -e VK_API_ACCESS_TOKEN=ACCESS_ID -e VK_API_USER_ID=USER_ID -p 28001:8080 vuzoll/vuzoll-ingest-vk-data:?TAG
 ----

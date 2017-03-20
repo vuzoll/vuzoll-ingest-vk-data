@@ -14,7 +14,7 @@ class MongoConfiguration extends AbstractMongoConfiguration {
 
     static String DATABASE_NAME = System.getenv('MONGO_DATABASE_NAME') ?: 'vuzoll'
     static String AUTHENTICATION_DATABASE_NAME = System.getenv('MONGO_AUTH_DATABASE_NAME') ?: 'admin'
-    static String HOST = System.getenv('MONGO_HOST') ?: 'vuzoll_mongo'
+    static String HOST = System.getenv('MONGO_HOST') ?: 'vuzoll-mongo'
     static Integer PORT = System.getenv('MONGO_PORT') ? Integer.parseInt(System.getenv('MONGO_PORT')) : 27017
     static String USERNAME = System.getenv('MONGO_USERNAME') ?: 'ingestVkService'
     static String PASSWORD = System.getenv('MONGO_PASSWORD')
